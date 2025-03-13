@@ -1,0 +1,40 @@
+﻿@model Someren.Models.Room
+
+@{
+    ViewData["Title"] = "Delete Room";
+}
+
+<h4>Delete Room</h4>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="RoomID" />
+
+    <div class="form-group py-2">
+        <label asp-for="RoomNumber">Room Number:</label>
+        <input type="text" asp-for="RoomNumber" class="form-control" readonly />
+    </div>
+
+    <div class="form-group py-2">
+        <label asp-for="RoomType">Room Type:</label>
+        <input type="text" asp-for="RoomType" class="form-control" readonly />
+    </div>
+
+    <div class="form-group py-2">
+        <label asp-for="Capacity">Capacity:</label>
+        <input type="text" asp-for="Capacity" class="form-control" readonly />
+    </div>
+
+    <div class="form-group py-2">
+        <label asp-for="Floor">Floor:</label>
+        <input type="text" asp-for="Floor" class="form-control" readonly />
+    </div>
+
+    <div class="form-group py-2">
+        <label asp-for="Building">Building:</label>
+        <input type="text" asp-for="Building" class="form-control" readonly />
+    </div>
+
+    <button type="submit" class="btn btn-danger">Delete</button>
+</form>
+
+<a asp-action="Index" class="btn btn-secondary">Back to List</a>

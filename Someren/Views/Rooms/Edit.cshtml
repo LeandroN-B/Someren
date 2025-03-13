@@ -1,0 +1,40 @@
+﻿@model Someren.Models.Room
+
+@{
+    ViewData["Title"] = "Edit Room";
+}
+
+<h4>Edit Room</h4>
+
+<form action="/Rooms/Edit" method="POST">
+    <input type="hidden" asp-for="RoomID" />
+
+    <div class="form-group py-2">
+        <label asp-for="RoomNumber">Room Number:</label>
+        <input type="text" id="RoomNumber" name="RoomNumber" class="form-control" required value="@Model?.RoomNumber" />
+    </div>
+
+    <div class="form-group py-2">
+        <label asp-for="RoomType">Room Type:</label>
+        <input type="text" id="RoomType" name="RoomType" class="form-control" required value="@Model?.RoomType" />
+    </div>
+
+    <div class="form-group py-2">
+        <label asp-for="Capacity">Capacity:</label>
+        <input type="number" id="Capacity" name="Capacity" class="form-control" required value="@Model?.Capacity" />
+    </div>
+
+    <div class="form-group py-2">
+        <label asp-for="Floor">Floor:</label>
+        <input type="number" id="Floor" name="Floor" class="form-control" required value="@Model?.Floor" />
+    </div>
+
+    <div class="form-group py-2">
+        <label asp-for="Building">Building:</label>
+        <input type="text" id="Building" name="Building" class="form-control" required value="@Model?.Building" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Edit</button>
+</form>
+
+<a href="/Rooms/Index">Back to List</a>

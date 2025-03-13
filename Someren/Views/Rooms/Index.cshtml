@@ -1,0 +1,41 @@
+﻿@model IEnumerable<Someren.Models.Room>
+
+@{
+    ViewData["Title"] = "Rooms";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Room ID</th>
+            <th>Room Number</th>
+            <th>Room Type</th>
+            <th>Capacity</th>
+            <th>Floor</th>
+            <th>Building</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var room in Model)
+        {
+            <tr>
+                <td>@room.RoomID</td>
+                <td>@room.RoomNumber</td>
+                <td>@room.RoomType</td>
+                <td>@room.Capacity</td>
+                <td>@room.Floor</td>
+                <td>@room.Building</td>
+
+                <!--ACTIONS-->
+                <td>
+                    <a asp-action="Edit" asp-route-id="@room.RoomID" class="btn btn-primary btn-sm">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@room.RoomID" class="btn btn-danger btn-sm"
+                       onclick="return confirm('Are you sure you want to delete this room?');">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
