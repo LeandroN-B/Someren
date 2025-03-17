@@ -1,7 +1,7 @@
-﻿using Someren.Models;
-
-namespace Someren.Repositories
+﻿namespace Someren.Repositories
 {
+    using Someren.Models;
+
     public interface ILecturerRepository
     {
         List<Lecturer> GetAllLecturers();
@@ -9,5 +9,6 @@ namespace Someren.Repositories
         void AddLecturer(Lecturer lecturer);
         void UpdateLecturer(Lecturer lecturer);
         void DeleteLecturer(Lecturer lecturer);
+        List<Lecturer> GetLecturersInRoom(int roomId);
     }
 }

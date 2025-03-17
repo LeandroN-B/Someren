@@ -28,28 +28,33 @@ namespace Someren.Controllers
             [HttpGet]
         public IActionResult Create()
         {
-            try
-            {
-                // Fetch all rooms using _roomRepository
-                var rooms = _roomRepository.GetAllRooms();
+            // Get all rooms from the database
+            List<Room> rooms = _roomRepository.GetAllRooms();
 
-                // Check if rooms are null or empty for debugging
-                if (rooms == null || rooms.Count == 0)
+            // Create a list to store available rooms
+            List<Room> availableRooms = new List<Room>();
+
+            // Loop through each room and check if it's available
+            foreach (Room room in rooms)
+            {
+                // Only check Single rooms
+                if (room.RoomType == RoomType.Single)
                 {
-                    throw new InvalidOperationException("No rooms available.");
+                    // Get lecturers in the room
+                    List<Lecturer> lecturersInRoom = _lecturerRepository.GetLecturersInRoom(room.RoomID);
+
+                    // If no lecturer is assigned, add room to availableRooms
+                    if (lecturersInRoom.Count == 0)
+                    {
+                        availableRooms.Add(room);
+                    }
                 }
-
-                // Pass rooms to the view
-                ViewData["Rooms"] = rooms;
-
-                return View();
             }
-            catch (Exception ex)
-            {
-                // Log the error (you can use a logger here)
-                ModelState.AddModelError("", $"Error fetching rooms: {ex.Message}");
-                return View();
-            }
+
+            // Pass the available rooms to the view
+            ViewData["Rooms"] = availableRooms;
+
+            return View();
         }
 
 
