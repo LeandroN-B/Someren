@@ -1,7 +1,12 @@
-﻿namespace Someren.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+namespace Someren.Models
 {
     public class Lecturer
-    {       
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int LecturerID { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -20,6 +25,8 @@
                 return age;
             }
         }
+        public Lecturer() { }
+
         public Lecturer(int lecturerID, string firstName, string lastName, string phoneNumber, DateTime dateOfBirth)
         {
             LecturerID = lecturerID;
