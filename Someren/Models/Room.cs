@@ -3,11 +3,18 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Someren.Models
 {
-    // Building ENUM (for reference; note that the Room model uses string for Building)
+    // BUILDING ENUM
     public enum BuildingType
     {
-        Single,
-        Dormitory
+        A, 
+        B
+    }
+
+    // Room Type ENUM
+    public enum RoomType
+    {
+        Dormitory,
+        Single
     }
 
     // Class Room
@@ -22,7 +29,7 @@ namespace Someren.Models
         public string RoomNumber { get; set; } = string.Empty;
 
         [Required]
-        public char RoomType { get; set; }
+        public RoomType RoomType { get; set; }
 
         [Required]
         public int Capacity { get; set; }
@@ -31,13 +38,12 @@ namespace Someren.Models
         public int Floor { get; set; }
 
         [Required]
-        [Column(TypeName = "varchar(10)")]
-        public string Building { get; set; } = "Single";
+        public BuildingType Building { get; set; }
 
         public Room() { }
 
         // Constructor with parameters
-        public Room(string roomNumber, char roomType, int capacity, int floor, string building)
+        public Room(string roomNumber, RoomType roomType, int capacity, int floor, BuildingType building)
         {
             RoomNumber = roomNumber;
             RoomType = roomType;
@@ -48,3 +54,11 @@ namespace Someren.Models
     }
 }
 
+/* EXTRA INFORMATION
+
+[REQUIRED] means Mandatory NOT NULL
+[KEY] means it is PRIMARY KEY
+[] The database will automatically generate a unique number/value/ID for this column when a new room is added.
+
+(My main question is does it ever reset and goes back to starting at 1?)
+ */

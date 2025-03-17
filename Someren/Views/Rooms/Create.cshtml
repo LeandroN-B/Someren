@@ -1,0 +1,48 @@
+﻿@model Someren.Models.Room
+
+@{
+    ViewData["Title"] = "Add Room";
+}
+
+<h4>Add Room</h4>
+
+<form asp-action="Create" method="post">
+    <div class="form-group py-2">
+        <label asp-for="RoomNumber">Room Number:</label>
+        <input type="text" asp-for="RoomNumber" class="form-control" required />
+    </div>
+
+    <div class="form-group py-2">
+        <label asp-for="RoomType">Room Type:</label>
+        <select asp-for="RoomType" class="form-control" id="roomType">
+            <option value="Dormitory">Dormitory</option>
+            <option value="Single">Single</option>
+        </select>
+    </div>
+
+    <div class="form-group py-2" id="capacityField">
+        <label asp-for="Capacity">Capacity:</label>
+        <input type="number" asp-for="Capacity" class="form-control" id="capacity" min="1" max="8" required />
+    </div>
+
+    <div class="form-group py-2">
+        <label asp-for="Floor">Floor:</label>
+        <select asp-for="Floor" class="form-control">
+            <option value="1">1</option>
+            <option value="2">2</option>
+        </select>
+    </div>
+
+
+    <div class="form-group py-2">
+        <label asp-for="Building">Building:</label>
+        <select asp-for="Building" class="form-control">
+            <option value="A">A</option>
+            <option value="B">B</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add Room</button>
+</form>
+
+<a asp-action="Index" class="btn btn-secondary">Back to List</a>
