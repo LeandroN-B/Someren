@@ -27,20 +27,14 @@ namespace Someren.Repositories
                     {
                         while (reader.Read())
                         {
-                            // Extract RoomType as a char (first character of string)
-                            string roomTypeStr = reader["RoomType"].ToString() ?? string.Empty;
-                            char roomTypeChar = string.IsNullOrEmpty(roomTypeStr) ? default(char) : roomTypeStr[0];
-                            // Get Building as string directly
-                            string buildingValue = reader["Building"].ToString() ?? "Single";
-
                             rooms.Add(new Room
                             {
-                                RoomID = Convert.ToInt32(reader["RoomID"]),
-                                RoomNumber = reader["RoomNumber"].ToString() ?? string.Empty,
-                                RoomType = roomTypeChar,
-                                Capacity = Convert.ToInt32(reader["Capacity"]),
-                                Floor = Convert.ToInt32(reader["Floor"]),
-                                Building = buildingValue
+                                RoomID = reader.GetInt32(0),
+                                RoomNumber = reader.GetString(1),
+                                RoomType = Enum.TryParse(reader.GetString(2), out RoomType roomType) ? roomType : RoomType.Dormitory,
+                                Capacity = reader.GetInt32(3),
+                                Floor = reader.GetInt32(4),
+                                Building = Enum.TryParse(reader.GetString(5), out BuildingType buildingType) ? buildingType : BuildingType.A
                             });
                         }
                     }
@@ -62,18 +56,14 @@ namespace Someren.Repositories
                     {
                         if (reader.Read())
                         {
-                            string roomTypeStr = reader["RoomType"].ToString() ?? string.Empty;
-                            char roomTypeChar = string.IsNullOrEmpty(roomTypeStr) ? default(char) : roomTypeStr[0];
-                            string buildingValue = reader["Building"].ToString() ?? "Single";
-
                             return new Room
                             {
-                                RoomID = Convert.ToInt32(reader["RoomID"]),
-                                RoomNumber = reader["RoomNumber"].ToString() ?? string.Empty,
-                                RoomType = roomTypeChar,
-                                Capacity = Convert.ToInt32(reader["Capacity"]),
-                                Floor = Convert.ToInt32(reader["Floor"]),
-                                Building = buildingValue
+                                RoomID = reader.GetInt32(0),
+                                RoomNumber = reader.GetString(1),
+                                RoomType = Enum.TryParse(reader.GetString(2), out RoomType roomType) ? roomType : RoomType.Dormitory,
+                                Capacity = reader.GetInt32(3),
+                                Floor = reader.GetInt32(4),
+                                Building = Enum.TryParse(reader.GetString(5), out BuildingType buildingType) ? buildingType : BuildingType.A
                             };
                         }
                     }
@@ -84,17 +74,21 @@ namespace Someren.Repositories
 
         public void AddRoom(Room room)
         {
+            if (room.RoomType == RoomType.Single && room.Capacity > 1)
+            {
+                throw new ArgumentException("Single rooms cannot have more than 1 person.");
+            }
+
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 string query = "INSERT INTO Rooms (RoomNumber, RoomType, Capacity, Floor, Building) VALUES (@RoomNumber, @RoomType, @Capacity, @Floor, @Building)";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@RoomNumber", room.RoomNumber);
-                    // Convert RoomType char to string for saving.
                     command.Parameters.AddWithValue("@RoomType", room.RoomType.ToString());
                     command.Parameters.AddWithValue("@Capacity", room.Capacity);
                     command.Parameters.AddWithValue("@Floor", room.Floor);
-                    command.Parameters.AddWithValue("@Building", room.Building);
+                    command.Parameters.AddWithValue("@Building", room.Building.ToString());
 
                     connection.Open();
                     command.ExecuteNonQuery();
@@ -104,6 +98,11 @@ namespace Someren.Repositories
 
         public void UpdateRoom(Room room)
         {
+            if (room.RoomType == RoomType.Single && room.Capacity > 1)
+            {
+                throw new ArgumentException("Single rooms cannot have more than 1 person.");
+            }
+
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 string query = "UPDATE Rooms SET RoomNumber = @RoomNumber, RoomType = @RoomType, Capacity = @Capacity, Floor = @Floor, Building = @Building WHERE RoomID = @RoomID";
@@ -114,7 +113,7 @@ namespace Someren.Repositories
                     command.Parameters.AddWithValue("@RoomType", room.RoomType.ToString());
                     command.Parameters.AddWithValue("@Capacity", room.Capacity);
                     command.Parameters.AddWithValue("@Floor", room.Floor);
-                    command.Parameters.AddWithValue("@Building", room.Building);
+                    command.Parameters.AddWithValue("@Building", room.Building.ToString());
 
                     connection.Open();
                     int affectedRows = command.ExecuteNonQuery();

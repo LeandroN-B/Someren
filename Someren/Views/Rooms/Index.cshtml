@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Someren.Models.Room>
+﻿@model List<Someren.Models.Room>
 
 @{
     ViewData["Title"] = "Rooms";
@@ -29,11 +29,11 @@
                 <td>@room.Floor</td>
                 <td>@room.Building</td>
 
-                <!--ACTIONS-->
+                <!--ACTIONS (ADD, EDIT, DELETE)-->
                 <td>
-                    <a asp-action="Edit" asp-route-id="@room.RoomID" class="btn btn-primary btn-sm">Edit</a>
-                    <a asp-action="Delete" asp-route-id="@room.RoomID" class="btn btn-danger btn-sm"
-                       onclick="return confirm('Are you sure you want to delete this room?');">Delete</a>
+                    <a asp-action="Create" class="btn btn-success btn-sm">Add Room</a>
+                    <a asp-action="Edit" asp-route-id="@room.RoomID" class="btn btn-primary btn-sm">Edit Room</a>
+                    <a asp-action="Delete" asp-route-id="@room.RoomID" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this room?');">Delete Room</a> <!-- TO PREVENT MISTAKES OF DELETEING A ROOM WITHOUT WANTING-->
                 </td>
             </tr>
         }
