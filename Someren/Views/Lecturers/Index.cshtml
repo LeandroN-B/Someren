@@ -1,0 +1,39 @@
+﻿@model IEnumerable<Someren.Models.Lecturer>
+
+@{
+    ViewData["Title"] = "Lecturers";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Lecturer ID</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Phone Number</th>
+            <th>Age</th>
+            
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var lecturer in Model)
+        {
+            <tr>
+                <td>@lecturer.LecturerID</td>
+                <td>@lecturer.FirstName</td>
+                <td>@lecturer.LastName</td>
+                <td>@lecturer.PhoneNumber</td>
+                <td>@lecturer.Age</td>
+              
+                <!--ACTIONS-->
+                <td>
+                    <a asp-action="Edit" asp-route-id="@lecturer.LecturerID" class="btn btn-primary btn-sm">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@lecturer.LecturerID" class="btn btn-danger btn-sm"
+                       onclick="return confirm('Are you sure you want to delete this lecturer?');">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
