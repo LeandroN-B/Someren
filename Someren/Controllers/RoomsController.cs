@@ -7,15 +7,24 @@ namespace Someren.Controllers
     public class RoomsController : Controller
     {
         private readonly IRoomRepository _roomRepository;
+        private readonly ILecturerRepository _lecturerRepository;
 
-        public RoomsController(IRoomRepository roomRepository)
+        public RoomsController(IRoomRepository roomRepository, ILecturerRepository lecturerRepository)
         {
             _roomRepository = roomRepository;
+            _lecturerRepository = lecturerRepository;
         }
 
         public IActionResult Index()
         {
             List<Room> rooms = _roomRepository.GetAllRooms();
+            List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers();
+
+            foreach (var room in rooms)
+            {
+                room.Lecturer = lecturers.FirstOrDefault(l => l.RoomID == room.RoomID);
+            }
+
             return View(rooms);
         }
 
