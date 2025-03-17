@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Someren.Models;
+using System.Data;
 
 namespace Someren.Repositories
 {
@@ -7,7 +8,6 @@ namespace Someren.Repositories
     {
         private readonly string _connectionString;
 
-        //conection with the DB
         public LecturerRepository(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("LMBdatabase")
@@ -34,10 +34,7 @@ namespace Someren.Repositories
                         DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
                         int roomID = Convert.ToInt32(reader["roomID"]);
 
-                        // Create the Lecturer object
                         var lecturer = new Lecturer(lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID);
-
-                        // Add the Lecturer to the list
                         lecturers.Add(lecturer);
                     }
                 }
@@ -45,7 +42,7 @@ namespace Someren.Repositories
             return lecturers;
         }
 
-
+        // Implement the GetLecturerByID method
         public Lecturer? GetLecturerByID(int id)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -71,7 +68,7 @@ namespace Someren.Repositories
                     }
                 }
             }
-            return null; // Return null if no lecturer is found
+            return null;  // Return null if no lecturer with the given ID is found
         }
 
         public void AddLecturer(Lecturer lecturer)
@@ -86,14 +83,13 @@ namespace Someren.Repositories
                     command.Parameters.AddWithValue("@LastName", lecturer.LastName);
                     command.Parameters.AddWithValue("@PhoneNumber", lecturer.PhoneNumber);
                     command.Parameters.AddWithValue("@DateOfBirth", lecturer.DateOfBirth);
-                    command.Parameters.AddWithValue("@RoomID", lecturer.RoomID);  // Ensure this is passed correctly
+                    command.Parameters.AddWithValue("@RoomID", lecturer.RoomID);
 
                     connection.Open();
                     command.ExecuteNonQuery();
                 }
             }
         }
-
 
         public void UpdateLecturer(Lecturer lecturer)
         {
@@ -118,7 +114,6 @@ namespace Someren.Repositories
             }
         }
 
-
         public void DeleteLecturer(Lecturer lecturer)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -137,5 +132,36 @@ namespace Someren.Repositories
             }
         }
 
+        public List<Lecturer> GetLecturersInRoom(int roomId)
+        {
+            List<Lecturer> lecturersInRoom = new List<Lecturer>();
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT * FROM Lecturer WHERE roomID = @RoomID";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@RoomID", roomId);
+                    connection.Open();
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            lecturersInRoom.Add(new Lecturer
+                            {
+                                LecturerID = Convert.ToInt32(reader["lecturerID"]),
+                                FirstName = reader["firstName"].ToString() ?? string.Empty,
+                                LastName = reader["lastName"].ToString() ?? string.Empty,
+                                PhoneNumber = reader["phoneNumber"].ToString() ?? string.Empty,
+                                DateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]),
+                                RoomID = Convert.ToInt32(reader["roomID"])
+                            });
+                        }
+                    }
+                }
+            }
+
+            return lecturersInRoom; // Return the list of lecturers in the room
+        }
     }
 }
