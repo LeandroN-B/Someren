@@ -42,14 +42,20 @@ namespace Someren.Models
 
         public Room() { }
 
+
+        // Lecturer Foreign key
+        public int? LecturerID { get; set; } // Nullable, since not all rooms have lecturers
+        public Lecturer? Lecturer { get; set; } // Navigation Property
+
         // Constructor with parameters
-        public Room(string roomNumber, RoomType roomType, int capacity, int floor, BuildingType building)
+        public Room(string roomNumber, RoomType roomType, int capacity, int floor, BuildingType building, int? lecturerID = null)
         {
             RoomNumber = roomNumber;
             RoomType = roomType;
             Capacity = capacity;
             Floor = floor;
             Building = building;
+            LecturerID = lecturerID;
         }
     }
 }

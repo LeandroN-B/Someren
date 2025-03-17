@@ -1,0 +1,79 @@
+﻿@model Someren.Models.Lecturer
+
+@{
+    ViewData["Title"] = "Add Lecturer";
+}
+
+<div class="container mt-5">
+    <div class="card border border-success border-3 rounded-4">
+        <div class="card-header bg-success text-white rounded-top-4">
+            <h1 class="mb-0">Add Lecturer</h1>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="FirstName">First Name:</label>
+                        <input type="text" asp-for="FirstName" class="form-control" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="LastName">Last Name:</label>
+                        <input type="text" asp-for="LastName" class="form-control" required />
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="PhoneNumber">Phone Number:</label>
+                        <input type="tel" asp-for="PhoneNumber" class="form-control" pattern="^\+?[0-9\s\-]{7,15}$"
+                               placeholder="+1234567890" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="DateOfBirth">Date of Birth:</label>
+                        <input type="date" asp-for="DateOfBirth" class="form-control" required max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                    </div>
+                </div>
+
+                <!-- RoomID dropdown with proper null check -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="RoomID">Room:</label>
+                        <select asp-for="RoomID" class="form-control">
+                            <option value="">Select a room</option>
+
+                            @if (ViewData["Rooms"] != null)
+                            {
+                                var rooms = ViewData["Rooms"] as List<Someren.Models.Room>;
+                                if (rooms != null && rooms.Count > 0)
+                                {
+                                    foreach (var room in rooms)
+                                    {
+                                        <option value="@room.RoomID">@room.RoomNumber</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option disabled>No rooms available</option>
+                                }
+                            }
+                            else
+                            {
+                                <option disabled>Failed to load rooms</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to List
+                    </a>
+
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-plus-circle"></i> Add Lecturer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

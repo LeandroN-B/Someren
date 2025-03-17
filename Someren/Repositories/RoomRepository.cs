@@ -72,6 +72,33 @@ namespace Someren.Repositories
             return null;
         }
 
+        // THIS IS FOR GETTING LECTURERS IN A SEPARATE WAY
+        public Lecturer? GetLecturerByRoomID(int roomID)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT LecturerID, FirstName, LastName FROM Lecturer WHERE RoomID = @RoomID";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@RoomID", roomID);
+                    connection.Open();
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return new Lecturer
+                            {
+                                LecturerID = reader.GetInt32(0),
+                                FirstName = reader.GetString(1),
+                                LastName = reader.GetString(2)
+                            };
+                        }
+                    }
+                }
+            }
+            return null; // No lecturer assigned to this room
+        }
+
         public void AddRoom(Room room)
         {
             if (room.RoomType == RoomType.Single && room.Capacity > 1)

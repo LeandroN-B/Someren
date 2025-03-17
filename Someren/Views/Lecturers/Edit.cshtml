@@ -4,32 +4,54 @@
     ViewData["Title"] = "Edit Lecturer";
 }
 
-<h4>Edit Room</h4>
+<div class="container mt-5">
+    <div class="card border border-primary border-3 rounded-4">
+        <div class="card-header bg-primary text-white rounded-top-4">
+            <h1 class="mb-0">Edit Lecturer</h1>
+        </div>
+        <div class="card-body">
+            <form asp-action="Edit" method="POST">
+                <input type="hidden" asp-for="LecturerID" />
 
-<form action="/Lecturers/Edit" method="POST">
-    <input type="hidden" asp-for="LecturerID" />
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="FirstName">First Name:</label>
+                        <input type="text" asp-for="FirstName" class="form-control" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="LastName">Last Name:</label>
+                        <input type="text" asp-for="LastName" class="form-control" required />
+                    </div>
+                </div>
 
-    <div class="form-group py-2">
-        <label asp-for="FirstName">First Name:</label>
-        <input type="text" id="FirstName" name="FirstName" class="form-control" required value="@Model?.FirstName" />
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="PhoneNumber">Phone Number:</label>
+                        <input type="tel" asp-for="PhoneNumber" class="form-control" id="PhoneNumber"
+                               pattern="^\+?[0-9\s\-]{7,15}$"
+                               placeholder="+1234567890"
+                               required value="@Model?.PhoneNumber" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="DateOfBirth">Date of birth</label>
+                        <input type="date" id="DateOfBirth" name="DateOfBirth" class="form-control"
+                               required value="@Model?.DateOfBirth.ToString("yyyy-MM-dd")"/>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <!-- Go Back Button -->
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Go Back to Lecturer List
+                    </a>
+
+                    <!-- Save Button -->
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-check-lg"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-
-    <div class="form-group py-2">
-        <label asp-for="LastName">Last Name:</label>
-        <input type="text" id="LastName" name="LastName" class="form-control" required value="@Model?.LastName" />
-    </div>
-
-    <div class="form-group py-2">
-        <label asp-for="PhoneNumber">Phone Number:</label>
-        <input type="number" id="PhoneNumber" name="PhoneNumber" class="form-control" required value="@Model?.PhoneNumber" />
-    </div>
-
-    <div class="form-group py-2">
-        <label asp-for="Age">Age:</label>
-        <input type="number" id="Age" name="Age" class="form-control" required value="@Model?.Age" />
-    </div>
-       
-    <button type="submit" class="btn btn-primary">Edit</button>
-</form>
-
-<a href="/Lecturers/Index">Back to List</a>
+</div>

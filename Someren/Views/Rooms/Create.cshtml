@@ -4,45 +4,68 @@
     ViewData["Title"] = "Add Room";
 }
 
-<h4>Add Room</h4>
+<div class="container mt-5">
+    <div class="card border border-success border-3 rounded-4">
+        <div class="card-header bg-success text-white rounded-top-4">
+            <h1 class="mb-0">Add Room</h1>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="RoomNumber">Room Number:</label>
+                        <input type="text" asp-for="RoomNumber" class="form-control" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="RoomType">Room Type:</label>
+                        <select asp-for="RoomType" class="form-control" required>
+                            <option value="Dormitory">Dormitory</option>
+                            <option value="Single">Single</option>
+                        </select>
+                    </div>
+                </div>
 
-<form asp-action="Create" method="post">
-    <div class="form-group py-2">
-        <label asp-for="RoomNumber">Room Number:</label>
-        <input type="text" asp-for="RoomNumber" class="form-control" required />
+                @if (Model == null || Model.RoomType == RoomType.Dormitory)
+                {
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="fw-bold" asp-for="Capacity">Capacity:</label>
+                            <input type="number" asp-for="Capacity" class="form-control" min="1" max="8" required />
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <input type="hidden" asp-for="Capacity" value="1" />
+                }
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="Floor">Floor:</label>
+                        <select asp-for="Floor" class="form-control">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="Building">Building:</label>
+                        <select asp-for="Building" class="form-control">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to List
+                    </a>
+
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-plus-circle"></i> Add Room
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-
-    <div class="form-group py-2">
-        <label asp-for="RoomType">Room Type:</label>
-        <select asp-for="RoomType" class="form-control" id="roomType">
-            <option value="Dormitory">Dormitory</option>
-            <option value="Single">Single</option>
-        </select>
-    </div>
-
-    <div class="form-group py-2" id="capacityField">
-        <label asp-for="Capacity">Capacity:</label>
-        <input type="number" asp-for="Capacity" class="form-control" id="capacity" min="1" max="8" required />
-    </div>
-
-    <div class="form-group py-2">
-        <label asp-for="Floor">Floor:</label>
-        <select asp-for="Floor" class="form-control">
-            <option value="1">1</option>
-            <option value="2">2</option>
-        </select>
-    </div>
-
-
-    <div class="form-group py-2">
-        <label asp-for="Building">Building:</label>
-        <select asp-for="Building" class="form-control">
-            <option value="A">A</option>
-            <option value="B">B</option>
-        </select>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Add Room</button>
-</form>
-
-<a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>
