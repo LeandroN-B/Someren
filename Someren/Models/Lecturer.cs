@@ -1,4 +1,4 @@
-﻿namespace Someren.Models
+namespace Someren.Models
 {
     public class Lecturer
     {

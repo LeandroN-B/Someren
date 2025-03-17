@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Someren.Models;
 using Someren.Repositories;
 
@@ -18,11 +18,14 @@ namespace Someren.Controllers
 
         public IActionResult Index()
         {
-            List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers();
+            List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers()
+                                          .OrderBy(l => l.LastName) // Sort by Last Name (A-Z)
+                                          .ToList();
             return View(lecturers);
         }
 
-        [HttpGet]
+
+            [HttpGet]
         public IActionResult Create()
         {
             try
