@@ -1,0 +1,17 @@
+﻿@model Someren.Models.Student
+
+<h2>Delete Student</h2>
+
+<p>Are you sure you want to delete this student?</p>
+<ul>
+    <li><strong>First Name:</strong> @Model.FirstName</li>
+    <li><strong>Last Name:</strong> @Model.LastName</li>
+    <li><strong>Telephone:</strong> @Model.Telephone</li>
+    <li><strong>Class:</strong> @Model.Class</li>
+</ul>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="StudentId" />
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

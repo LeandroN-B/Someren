@@ -1,40 +1,136 @@
-﻿using Someren.Models;
+﻿using Microsoft.Data.SqlClient;
+using Someren.Models;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 
-public class StudentRepository : IStudentRepository
+namespace Someren.Repositories
 {
-    private readonly List<Student> _students;
-
-    public StudentRepository()
+    public class StudentRepository : IStudentRepository
     {
-        // Dummy data (replace with DB connection)
-        _students = new List<Student>
+        private readonly string _connectionString;
+
+        public int StudentID { get; private set; }
+
+        public StudentRepository(IConfiguration configuration)
         {
-            new Student { StudentId = 1, FirstName = "Alice", LastName = "Brown", Telephone = "06-11111111", Class = "CS101" },
-            new Student { StudentId = 2, FirstName = "Bob", LastName = "Smith", Telephone = "06-22222222", Class = "CS101" },
-            new Student { StudentId = 3, FirstName = "Charlie", LastName = "Jones", Telephone = "06-33333333", Class = "CS101" }
-            // Add more students as needed
-        };
-    }
+            _connectionString = configuration.GetConnectionString("LMBdatabase")
+                ?? throw new ArgumentNullException(nameof(configuration));
+        }
 
-    public List<Student> GetAllStudents() => _students.OrderBy(s => s.LastName).ToList();
-
-    public Student? GetStudentByID(int id) => _students.FirstOrDefault(s => s.StudentId == id);
-
-    public void AddStudent(Student student) => _students.Add(student);
-
-    public void UpdateStudent(Student student)
-    {
-        var existing = _students.FirstOrDefault(s => s.StudentId == student.StudentId);
-        if (existing != null)
+        public List<Student> GetAllStudents()
         {
-            existing.FirstName = student.FirstName;
-            existing.LastName = student.LastName;
-            existing.Telephone = student.Telephone;
-            existing.Class = student.Class;
+            List<Student> students = new List<Student>();
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT studentID, firstName, lastName, telephone, class FROM Student";
+                using (SqlCommand cmd = new SqlCommand(query, connection))
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int studentID = Convert.ToInt32(reader["studentID"]);
+                        string firstName = reader["firstName"].ToString();
+                        string lastName = reader["lastName"].ToString();
+                        string phoneNumber = reader["phoneNumber"].ToString();
+                        DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
+
+                        // Create the Student object
+                        var lecturer = new Student(StudentID, firstName, lastName, phoneNumber, dateOfBirth);
+
+                        // Add the Lecturer to the list
+                        Student.Add(student);
+
+                    }
+                }
+            }
+            return students;
+        }
+
+        public Student? GetStudentByID(int id)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT studentID, firstName, lastName, telephone, class FROM Student WHERE studentID = @StudentID";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@StudentID", id);
+                    connection.Open();
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            int studentID = Convert.ToInt32(reader["studentID"]);
+                            string firstName = reader["firstName"].ToString();
+                            string lastName = reader["lastName"].ToString();
+                            string telephone = reader["telephone"].ToString();
+                            string className = reader["class"].ToString();
+
+                            return new Student(studentID, firstName, lastName, telephone, className);
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        public void AddStudent(Student student)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "INSERT INTO Student (firstName, lastName, telephone, class) VALUES (@FirstName, @LastName, @Telephone, @Class)";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@FirstName", student.FirstName);
+                    command.Parameters.AddWithValue("@LastName", student.LastName);
+                    command.Parameters.AddWithValue("@Telephone", student.Telephone);
+                    command.Parameters.AddWithValue("@Class", student.Class);
+
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void UpdateStudent(Student student)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "UPDATE Student SET firstName = @FirstName, lastName = @LastName, telephone = @Telephone, class = @Class WHERE studentID = @StudentID";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@StudentID", student.StudentID);
+                    command.Parameters.AddWithValue("@FirstName", student.FirstName);
+                    command.Parameters.AddWithValue("@LastName", student.LastName);
+                    command.Parameters.AddWithValue("@Telephone", student.Telephone);
+                    command.Parameters.AddWithValue("@Class", student.Class);
+
+                    connection.Open();
+                    int affectedRows = command.ExecuteNonQuery();
+                    if (affectedRows == 0)
+                    {
+                        throw new Exception("No records updated!");
+                    }
+                }
+            }
+        }
+
+        public void DeleteStudent(Student student)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "DELETE FROM Student WHERE studentID = @StudentID";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@StudentID", student.StudentID);
+                    connection.Open();
+                    int affectedRows = command.ExecuteNonQuery();
+                    if (affectedRows == 0)
+                    {
+                        throw new Exception("No records deleted!");
+                    }
+                }
+            }
         }
     }
-
-    public void DeleteStudent(Student student) => _students.Remove(student);
 }

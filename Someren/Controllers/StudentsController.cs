@@ -8,7 +8,7 @@ namespace Someren.Controllers
     {
         private readonly IStudentRepository _studentRepository;
 
-        // Dependency injection through constructor
+        // Inject dependencies through the constructor
         public StudentsController(IStudentRepository studentRepository)
         {
             _studentRepository = studentRepository;
@@ -17,8 +17,8 @@ namespace Someren.Controllers
         public IActionResult Index()
         {
             List<Student> students = _studentRepository.GetAllStudents()
-                                         .OrderBy(s => s.LastName) // Sort by Last Name (A-Z)
-                                         .ToList();
+                                        .OrderBy(s => s.LastName) // Sort by Last Name (A-Z)
+                                        .ToList();
             return View(students);
         }
 
