@@ -4,23 +4,26 @@ using Someren.Repositories;
 
 namespace Someren.Controllers
 {
-    public class LecturerController : Controller
+    public class LecturersController : Controller
     {
         private readonly ILecturerRepository _lecturerRepository;
 
         //the dependencies should be injected through a ctor
-        public LecturerController(ILecturerRepository lecturerRepository)
+        public LecturersController(ILecturerRepository lecturerRepository)
         {
             _lecturerRepository = lecturerRepository;
         }
 
         public IActionResult Index()
         {
-            List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers();
+            List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers()
+                                          .OrderBy(l => l.LastName) // Sort by Last Name (A-Z)
+                                          .ToList();
             return View(lecturers);
-        }            
+        }
 
-        [HttpGet]
+
+            [HttpGet]
         public IActionResult Create()
         {
             return View();

@@ -6,10 +6,10 @@
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string PhoneNumber { get; set; }
-        public int RoomID { get; set; }
-        public DateTime DateOfBirth { get; set; }
-        public DateTime CheckInDate { get; set; }
-        public DateTime CheckOutDate { get; set; }
+        public int RoomID { get; set; }// I am not going to use for the first assignement
+        public DateTime DateOfBirth { get; set; }// I am not going to use for the first assignement
+        public DateTime CheckInDate { get; set; }// I am not going to use for the first assignement
+        public DateTime CheckOutDate { get; set; }// I am not going to use for the first assignement
         public string FullName => $"{FirstName} {LastName}";
         public int Age
         {
