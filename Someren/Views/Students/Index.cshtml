@@ -7,27 +7,28 @@
             <th>Student ID</th>
             <th>First Name</th>
             <th>Last Name</th>
-            <th>Telephone</th>
+            <th>PhoneNumber</th>
             <th>Class</th>
             <th>Actions</th>
+            <th><a asp-action="Create" class="btn btn-success">Add New Student</a></th>
         </tr>
     </thead>
     <tbody>
         @foreach (var student in Model)
         {
             <tr>
-                <td>@student.StudentId</td>
+                <td>@student.StudentID</td>
                 <td>@student.FirstName</td>
                 <td>@student.LastName</td>
-                <td>@student.Telephone</td>
-                <td>@student.Class</td>
+                <td>@student.PhoneNumber</td>
+                <td>@student.ClassName</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@student.StudentId" class="btn btn-warning">Edit</a>
-                    <a asp-action="Delete" asp-route-id="@student.StudentId" class="btn btn-danger">Delete</a>
+                    <a asp-action="Edit" asp-route-id="@student.StudentID" class="btn btn-primary">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@student.StudentID" class="btn btn-danger">Delete</a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
 
-<a asp-action="Create" class="btn btn-primary">Add New Student</a>
+

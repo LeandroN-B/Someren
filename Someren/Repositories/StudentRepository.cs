@@ -1,7 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
 using Someren.Models;
-using System;
-using System.Collections.Generic;
 
 namespace Someren.Repositories
 {
@@ -9,22 +7,22 @@ namespace Someren.Repositories
     {
         private readonly string _connectionString;
 
-        public int StudentID { get; private set; }
-
+        //conection with the DB
         public StudentRepository(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("LMBdatabase")
                 ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public List<Student> GetAllStudents()
+        public List<Student> GetAllStudents() //Method to get 
         {
             List<Student> students = new List<Student>();
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                string query = "SELECT studentID, firstName, lastName, telephone, class FROM Student";
+                string query = "SELECT studentID, firstName, lastName, phoneNumber, class FROM Student";
                 using (SqlCommand cmd = new SqlCommand(query, connection))
+
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
@@ -33,25 +31,26 @@ namespace Someren.Repositories
                         string firstName = reader["firstName"].ToString();
                         string lastName = reader["lastName"].ToString();
                         string phoneNumber = reader["phoneNumber"].ToString();
-                        DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
+                        string className = reader["class"].ToString();
 
-                        // Create the Student object
-                        var lecturer = new Student(StudentID, firstName, lastName, phoneNumber, dateOfBirth);
+                        // Create the student object
+                        var student = new Student(studentID, firstName, lastName, phoneNumber, className );
 
-                        // Add the Lecturer to the list
-                        Student.Add(student);
+                        // Add the student to the list
+                        students.Add(student);
 
                     }
                 }
             }
             return students;
+
         }
 
         public Student? GetStudentByID(int id)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "SELECT studentID, firstName, lastName, telephone, class FROM Student WHERE studentID = @StudentID";
+                string query = "SELECT studentID, firstName, lastName, phoneNumber, class FROM Student WHERE studentID = @StudentID";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@StudentID", id);
@@ -61,30 +60,29 @@ namespace Someren.Repositories
                         if (reader.Read())
                         {
                             int studentID = Convert.ToInt32(reader["studentID"]);
-                            string firstName = reader["firstName"].ToString();
-                            string lastName = reader["lastName"].ToString();
-                            string telephone = reader["telephone"].ToString();
+                            string firstName = reader["firstName"].ToString() ?? string.Empty;
+                            string lastName = reader["lastName"].ToString() ?? string.Empty;
+                            string phoneNumber = reader["phoneNumber"].ToString() ?? string.Empty;
                             string className = reader["class"].ToString();
 
-                            return new Student(studentID, firstName, lastName, telephone, className);
+                            return new Student(studentID, firstName, lastName, phoneNumber, className);
                         }
                     }
                 }
             }
-            return null;
+            return null; 
         }
-
         public void AddStudent(Student student)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "INSERT INTO Student (firstName, lastName, telephone, class) VALUES (@FirstName, @LastName, @Telephone, @Class)";
+                string query = "INSERT INTO Student (firstName, lastName, phoneNumber, class) VALUES (@FirstName, @LastName, @PhoneNumber, @Class)";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@FirstName", student.FirstName);
                     command.Parameters.AddWithValue("@LastName", student.LastName);
-                    command.Parameters.AddWithValue("@Telephone", student.Telephone);
-                    command.Parameters.AddWithValue("@Class", student.Class);
+                    command.Parameters.AddWithValue("@PhoneNumber", student.PhoneNumber);
+                    command.Parameters.AddWithValue("@Class", student.ClassName);
 
                     connection.Open();
                     command.ExecuteNonQuery();
@@ -96,14 +94,14 @@ namespace Someren.Repositories
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "UPDATE Student SET firstName = @FirstName, lastName = @LastName, telephone = @Telephone, class = @Class WHERE studentID = @StudentID";
+                string query = "UPDATE Student SET firstName = @FirstName, lastName = @LastName, phoneNumber = @PhoneNumber, class = @Class WHERE StudentID = @StudentID";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@StudentID", student.StudentID);
-                    command.Parameters.AddWithValue("@FirstName", student.FirstName);
-                    command.Parameters.AddWithValue("@LastName", student.LastName);
-                    command.Parameters.AddWithValue("@Telephone", student.Telephone);
-                    command.Parameters.AddWithValue("@Class", student.Class);
+                    command.Parameters.AddWithValue("@FirstName", student   .FirstName);
+                    command.Parameters.AddWithValue("@LastName", student    .LastName);
+                    command.Parameters.AddWithValue("@PhoneNumber", student.PhoneNumber);
+                    command.Parameters.AddWithValue("@Class", student.ClassName);
 
                     connection.Open();
                     int affectedRows = command.ExecuteNonQuery();
@@ -115,11 +113,12 @@ namespace Someren.Repositories
             }
         }
 
+
         public void DeleteStudent(Student student)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "DELETE FROM Student WHERE studentID = @StudentID";
+                string query = "DELETE FROM student WHERE studentID = @StudentID";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@StudentID", student.StudentID);
@@ -132,5 +131,7 @@ namespace Someren.Repositories
                 }
             }
         }
+
     }
 }
+
