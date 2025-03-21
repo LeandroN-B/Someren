@@ -1,12 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Someren.Models
 {
     // BUILDING ENUM
     public enum BuildingType
     {
-        A, 
+        A,
         B
     }
 
@@ -20,8 +20,6 @@ namespace Someren.Models
     // Class Room
     public class Room
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int RoomID { get; set; }
 
         [Required]
@@ -40,12 +38,14 @@ namespace Someren.Models
         [Required]
         public BuildingType Building { get; set; }
 
-        public Room() { }
-
-
         // Lecturer Foreign key
         public int? LecturerID { get; set; } // Nullable, since not all rooms have lecturers
         public Lecturer? Lecturer { get; set; } // Navigation Property
+
+        // Navigation property for students (commented out for now)
+        // public List<Student>? Students { get; set; }
+
+        public Room() { }
 
         // Constructor with parameters
         public Room(string roomNumber, RoomType roomType, int capacity, int floor, BuildingType building, int? lecturerID = null)
@@ -59,12 +59,3 @@ namespace Someren.Models
         }
     }
 }
-
-/* EXTRA INFORMATION
-
-[REQUIRED] means Mandatory NOT NULL
-[KEY] means it is PRIMARY KEY
-[] The database will automatically generate a unique number/value/ID for this column when a new room is added.
-
-(My main question is does it ever reset and goes back to starting at 1?)
- */

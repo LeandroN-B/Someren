@@ -9,7 +9,6 @@ namespace Someren.Controllers
         private readonly ILecturerRepository _lecturerRepository;
         private readonly IRoomRepository _roomRepository;
 
-        //the dependencies should be injected through a ctor
         public LecturersController(ILecturerRepository lecturerRepository, IRoomRepository roomRepository)
         {
             _lecturerRepository = lecturerRepository;
@@ -28,23 +27,14 @@ namespace Someren.Controllers
             // Get all rooms from the database
             List<Room> rooms = _roomRepository.GetAllRooms();
 
-            // Create a list to store available rooms
+            // Filter only available single rooms
             List<Room> availableRooms = new List<Room>();
 
-            // Loop through each room and check if it's available
             foreach (Room room in rooms)
             {
-                // Only check Single rooms
-                if (room.RoomType == RoomType.Single)
+                if (room.RoomType == RoomType.Single && _lecturerRepository.IsRoomAvailableForLecturer(room.RoomID))
                 {
-                    // Get lecturers in the room
-                    List<Lecturer> lecturersInRoom = _lecturerRepository.GetLecturersInRoom(room.RoomID);
-
-                    // If no lecturer is assigned, add room to availableRooms
-                    if (lecturersInRoom.Count == 0)
-                    {
-                        availableRooms.Add(room);
-                    }
+                    availableRooms.Add(room);
                 }
             }
 
@@ -54,7 +44,6 @@ namespace Someren.Controllers
             return View();
         }
 
-
         [HttpPost]
         public IActionResult Create(Lecturer lecturer)
         {
@@ -62,8 +51,13 @@ namespace Someren.Controllers
             {
                 if (lecturer.RoomID == 0)
                 {
-                    // Handle error: No valid room selected
                     ModelState.AddModelError("", "Please select a room.");
+                    return View(lecturer);
+                }
+
+                if (!_lecturerRepository.IsRoomAvailableForLecturer(lecturer.RoomID))
+                {
+                    ModelState.AddModelError("", "This room is already assigned to a lecturer.");
                     return View(lecturer);
                 }
 
@@ -72,12 +66,10 @@ namespace Someren.Controllers
             }
             catch (Exception ex)
             {
-                // Handle exception
                 ModelState.AddModelError("", $"Error: {ex.Message}");
                 return View(lecturer);
             }
         }
-
 
         [HttpGet]
         public IActionResult Delete(int? id)
@@ -134,6 +126,5 @@ namespace Someren.Controllers
                 return View(lecturer);
             }
         }
-        
     }
 }
