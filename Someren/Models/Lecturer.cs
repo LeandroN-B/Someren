@@ -1,4 +1,7 @@
-﻿namespace Someren.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+namespace Someren.Models
 {
     public class Lecturer
     {
