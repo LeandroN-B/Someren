@@ -8,68 +8,133 @@ namespace Someren.Controllers
     {
         private readonly IRoomRepository _roomRepository;
         private readonly ILecturerRepository _lecturerRepository;
+        private readonly IStudentRepository _studentRepository;
 
-        public RoomsController(IRoomRepository roomRepository, ILecturerRepository lecturerRepository)
+        public RoomsController(IRoomRepository roomRepository, ILecturerRepository lecturerRepository, IStudentRepository studentRepository)
         {
             _roomRepository = roomRepository;
             _lecturerRepository = lecturerRepository;
+            _studentRepository = studentRepository;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(int capacity = 0)
         {
+            // Get all rooms, lecturers, and students
             List<Room> rooms = _roomRepository.GetAllRooms();
             List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers();
+            List<Student> students = _studentRepository.GetAllStudents();
 
-            foreach (Room room in rooms)
+            // Go through each room
+            for (int i = 0; i < rooms.Count; i++)
             {
-                room.Lecturer = lecturers.FirstOrDefault(l => l.RoomID == room.RoomID);
+                Room room = rooms[i];
+
+                // Assign lecturer to room if found
+                foreach (Lecturer lec in lecturers)
+                {
+                    if (lec.RoomID == room.RoomID)
+                    {
+                        room.Lecturer = lec;
+                        break; // Stop looking after we find the match
+                    }
+                }
+
+                // Create empty student list for the room
+                room.Students = new List<Student>();
+
+                // Add students that belong to the room
+                foreach (Student stu in students)
+                {
+                    if (stu.RoomID == room.RoomID)
+                    {
+                        room.Students.Add(stu);
+                    }
+                }
             }
 
-            return View(rooms);
+            // Filter rooms if capacity is selected
+            if (capacity > 0)
+            {
+                List<Room> filteredRooms = new List<Room>();
+
+                foreach (Room room in rooms)
+                {
+                    if (room.Capacity == capacity)
+                    {
+                        filteredRooms.Add(room);
+                    }
+                }
+
+                rooms = filteredRooms;
+            }
+
+            return View((rooms, capacity));
         }
+
+
+
 
         [HttpGet]
         public IActionResult Create()
         {
+            // Get all lecturers and all rooms
             List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers();
             List<Room> rooms = _roomRepository.GetAllRooms();
 
-            // Get lecturers who are not assigned to any room
-            var availableLecturers = lecturers
-                .Where(l => !rooms.Any(r => r.RoomID == l.RoomID))
-                .ToList();
+            // Create a new list to store available lecturers
+            List<Lecturer> availableLecturers = new List<Lecturer>();
 
+            // Check which lecturers do not have a room
+            foreach (Lecturer lecturer in lecturers)
+            {
+                bool hasRoom = false;
+
+                // Check each room to see if this lecturer is assigned
+                foreach (Room room in rooms)
+                {
+                    if (lecturer.RoomID == room.RoomID)
+                    {
+                        hasRoom = true;
+                        break; // No need to keep checking if we found a match
+                    }
+                }
+
+                // If lecturer has no room, add to available list
+                if (!hasRoom)
+                {
+                    availableLecturers.Add(lecturer);
+                }
+            }
+
+            // Pass the list to the view
             ViewBag.Lecturers = availableLecturers;
+
+            // Return the empty Room model for the view form
             return View(new Room());
         }
 
 
+
         [HttpPost]
-        public IActionResult Create(Room room, int? LecturerID)
+        public IActionResult Create(Room room)
         {
             try
             {
                 if (!ModelState.IsValid)
                 {
-                    ViewBag.Lecturers = _lecturerRepository.GetAllLecturers();
                     return View(room);
                 }
 
                 _roomRepository.AddRoom(room);
 
-                if (room.RoomType == RoomType.Single && LecturerID.HasValue)
-                {
-                    _lecturerRepository.AssignRoom(LecturerID.Value, room.RoomID);
-                }
-
                 return RedirectToAction("Index");
             }
             catch (Exception)
             {
-                ViewBag.Lecturers = _lecturerRepository.GetAllLecturers();
                 return View(room);
             }
         }
+
 
         [HttpGet]
         public IActionResult Delete(int? id)
@@ -117,6 +182,12 @@ namespace Someren.Controllers
             {
                 Lecturer? lecturer = _lecturerRepository.GetLecturerByRoomID(room.RoomID);
                 room.Lecturer = lecturer;
+            }
+
+            if (room.RoomType == RoomType.Dormitory)
+            {
+                List<Student> students = _studentRepository.GetAllStudents();
+                room.Students = students.Where(s => s.RoomID == room.RoomID).ToList();
             }
 
             return View(room);
