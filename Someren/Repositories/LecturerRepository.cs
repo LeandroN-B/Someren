@@ -10,7 +10,7 @@ namespace Someren.Repositories
 
         public LecturerRepository(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("LMBdatabase")
+            _connectionString = configuration.GetConnectionString("test1database")
                 ?? throw new ArgumentNullException(nameof(configuration));
         }
 

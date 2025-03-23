@@ -21,26 +21,28 @@ namespace Someren.Repositories
             {
                 connection.Open();
                 string query = "SELECT studentID, studentNumber, firstName, lastName, phoneNumber, class, roomID FROM Student";
+
                 using (SqlCommand cmd = new SqlCommand(query, connection))
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
-                        int studentID = Convert.ToInt32(reader["studentID"]);
-                        string studentNumber = reader["studentNumber"].ToString() ?? string.Empty;
-                        string firstName = reader["firstName"].ToString() ?? string.Empty;
-                        string lastName = reader["lastName"].ToString() ?? string.Empty;
-                        string phoneNumber = reader["phoneNumber"].ToString() ?? string.Empty;
-                        string className = reader["class"].ToString() ?? string.Empty;
-                        int roomID = Convert.ToInt32(reader["roomID"]);
-
-                        students.Add(new Student(studentID, studentNumber, firstName, lastName, phoneNumber, className, roomID));
+                        students.Add(new Student(
+                            Convert.ToInt32(reader["studentID"]),
+                            reader["studentNumber"].ToString() ?? string.Empty,
+                            reader["firstName"].ToString() ?? string.Empty,
+                            reader["lastName"].ToString() ?? string.Empty,
+                            reader["phoneNumber"].ToString() ?? string.Empty,
+                            reader["class"].ToString() ?? string.Empty,
+                            Convert.ToInt32(reader["roomID"])
+                        ));
                     }
                 }
             }
 
             return students;
         }
+
 
         public Student? GetStudentByID(int id)
         {
