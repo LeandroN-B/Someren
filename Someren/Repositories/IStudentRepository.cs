@@ -7,4 +7,6 @@ public interface IStudentRepository
     void AddStudent(Student student);
     void UpdateStudent(Student student);
     void DeleteStudent(Student student);
+    // New method to get students by room id
+    List<Student> GetStudentsByRoomID(int roomId);
 }
