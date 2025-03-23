@@ -9,7 +9,7 @@ namespace Someren.Repositories
 
         public RoomRepository(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("LMBdatabase")
+            _connectionString = configuration.GetConnectionString("test1database")
                 ?? throw new ArgumentNullException(nameof(configuration));
         }
 

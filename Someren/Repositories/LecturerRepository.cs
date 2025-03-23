@@ -10,7 +10,7 @@ namespace Someren.Repositories
 
         public LecturerRepository(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("LMBdatabase")
+            _connectionString = configuration.GetConnectionString("test1database")
                 ?? throw new ArgumentNullException(nameof(configuration));
         }
 
@@ -32,7 +32,7 @@ namespace Someren.Repositories
                         string lastName = reader["lastName"]?.ToString() ?? string.Empty;
                         string phoneNumber = reader["phoneNumber"]?.ToString() ?? string.Empty;
                         DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
-                        int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0;//handle cases where the roomID is NULL
+                        int roomID = Convert.ToInt32(reader["roomID"]);
 
                         var lecturer = new Lecturer(lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID);
                         lecturers.Add(lecturer);
@@ -94,7 +94,8 @@ namespace Someren.Repositories
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "UPDATE Lecturer SET firstName = @FirstName, lastName = @LastName, phoneNumber = @PhoneNumber, dateOfBirth = @DateOfBirth WHERE lecturerID = @LecturerID";
+                string query = @"UPDATE Lecturer SET firstName = @FirstName, lastName = @LastName, phoneNumber = @PhoneNumber, dateOfBirth = @DateOfBirth, roomID = @RoomID WHERE lecturerID = @LecturerID";
+
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@LecturerID", lecturer.LecturerID);
@@ -102,6 +103,7 @@ namespace Someren.Repositories
                     command.Parameters.AddWithValue("@LastName", lecturer.LastName);
                     command.Parameters.AddWithValue("@PhoneNumber", lecturer.PhoneNumber);
                     command.Parameters.AddWithValue("@DateOfBirth", lecturer.DateOfBirth);
+                    command.Parameters.AddWithValue("@RoomID", lecturer.RoomID);
 
                     connection.Open();
                     int affectedRows = command.ExecuteNonQuery();
@@ -112,6 +114,7 @@ namespace Someren.Repositories
                 }
             }
         }
+
 
         public void DeleteLecturer(Lecturer lecturer)
         {
@@ -195,4 +198,3 @@ namespace Someren.Repositories
         }
     }
 }
-

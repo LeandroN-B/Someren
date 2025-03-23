@@ -17,9 +17,12 @@ namespace Someren.Controllers
 
         public IActionResult Index()
         {
-            List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers();
+            List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers()
+                                          .OrderBy(l => l.LastName) // Sort by Last Name (A-Z)
+                                          .ToList();
             return View(lecturers);
         }
+
 
         [HttpGet]
         public IActionResult Create()
@@ -110,6 +113,19 @@ namespace Someren.Controllers
             }
 
             Lecturer? lecturer = _lecturerRepository.GetLecturerByID((int)id);
+            if (lecturer == null)
+            {
+                return NotFound();
+            }
+
+            // Get available single rooms (rooms not occupied by another lecturer)
+            List<Room> availableRooms = _roomRepository.GetAllRooms()
+                .Where(r => r.RoomType == RoomType.Single &&
+                            (_lecturerRepository.GetLecturerByRoomID(r.RoomID) == null || r.RoomID == lecturer.RoomID))
+                .ToList();
+
+            ViewBag.AvailableRooms = availableRooms;
+
             return View(lecturer);
         }
 
