@@ -9,6 +9,9 @@
         void AddLecturer(Lecturer lecturer);
         void UpdateLecturer(Lecturer lecturer);
         void DeleteLecturer(Lecturer lecturer);
-        List<Lecturer> GetLecturersInRoom(int roomId);
+
+        Lecturer? GetLecturerByRoomID(int roomId);
+        bool IsRoomAvailableForLecturer(int roomId);
+        void AssignRoom(int lecturerId, int roomId);
     }
 }

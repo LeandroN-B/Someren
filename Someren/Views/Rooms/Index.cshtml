@@ -1,53 +1,190 @@
-﻿@model List<Someren.Models.Room>
+﻿@model (List<Someren.Models.Room> Rooms, int SelectedCapacity)
 
 @{
     ViewData["Title"] = "Rooms";
+
+    // Count total number of rooms
+    int totalRooms = Model.Rooms.Count;
+
+    // Count total number of lecturers
+    int totalLecturers = 0;
+    for (int i = 0; i < Model.Rooms.Count; i++)
+    {
+        Room room = Model.Rooms[i];
+        if (room.Lecturer != null)
+        {
+            totalLecturers++;
+        }
+    }
+
+    // Count total number of students
+    int totalStudents = 0;
+    for (int i = 0; i < Model.Rooms.Count; i++)
+    {
+        Room room = Model.Rooms[i];
+        if (room.Students != null)
+        {
+            totalStudents += room.Students.Count;
+        }
+    }
+
+    int selectedCapacity = Model.SelectedCapacity;
 }
 
-<h1>@ViewData["Title"]</h1>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Room ID</th>
-            <th>Room Number</th>
-            <th>Room Type</th>
-            <th>Capacity</th>
-            <th>Floor</th>
-            <th>Building</th>
-            <th>Lecturer</th>
-            <th>Actions</th>
-            <th><a asp-action="Create" class="btn btn-success btn-sm">Add Room</a></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var room in Model)
-        {
-            <tr>
-                <td>@room.RoomID</td>
-                <td>@room.RoomNumber</td>
-                <td>@room.RoomType</td>
-                <td>@room.Capacity</td>
-                <td>@room.Floor</td>
-                <td>@room.Building</td>
-                <td>
-                    @if (room.RoomType == RoomType.Single && room.Lecturer != null)
-                    {
-                        <span>@room.Lecturer.FullName</span>
-                    }
-                    else
-                    {
-                        <span class="text-muted">No Lecturer Assigned</span>
-                    }
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@room.RoomID" class="btn btn-primary btn-sm">Edit Room</a>
-                    <a asp-action="Delete" asp-route-id="@room.RoomID" class="btn btn-danger btn-sm"
-                       onclick="return confirm('Are you sure you want to delete this room?');">
-                        Delete Room
-                    </a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+
+<div class="container mt-4">
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-success">
+                <div class="card-body text-center">
+                    <h5 class="card-title mb-0">Total Rooms</h5>
+                    <h2>@totalRooms</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body text-center">
+                    <h5 class="card-title mb-0">Total Lecturers</h5>
+                    <h2>@totalLecturers</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-info">
+                <div class="card-body text-center">
+                    <h5 class="card-title mb-0">Total Students</h5>
+                    <h2>@totalStudents</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <form method="get" class="mb-4 d-flex align-items-end">
+        <div class="me-2">
+            <label class="form-label fw-bold">Filter by Capacity:</label>
+            <select name="capacity" class="form-select">
+                <option value="">All</option>
+                <option value="1" selected="@(selectedCapacity == 1)">1 Bed</option>
+                <option value="2" selected="@(selectedCapacity == 2)">2 Beds</option>
+                <option value="3" selected="@(selectedCapacity == 3)">3 Beds</option>
+                <option value="4" selected="@(selectedCapacity == 4)">4 Beds</option>
+                <option value="5" selected="@(selectedCapacity == 5)">5 Beds</option>
+                <option value="6" selected="@(selectedCapacity == 6)">6 Beds</option>
+                <option value="7" selected="@(selectedCapacity == 7)">7 Beds</option>
+                <option value="8" selected="@(selectedCapacity == 8)">8 Beds</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-success mt-3">
+            <i class="bi bi-filter"></i> Filter
+        </button>
+    </form>
+
+    <!-- Title & Add at the right -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="text-success">@ViewData["Title"]</h1>
+        <a asp-action="Create" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Add Room
+        </a>
+    </div>
+
+    <!-- Table with all information -->
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered align-middle">
+            <thead class="table-success">
+                <tr class="text-center">
+                    <th>Room ID</th>
+                    <th>Room Number</th>
+                    <th>Room Type</th>
+                    <th>Capacity</th>
+                    <th>Floor</th>
+                    <th>Building</th>
+                    <th>Occupied By</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Looping through every room in the list -->
+                @foreach (Room room in Model.Rooms)
+                {
+                    <tr class="text-center">
+                        <!-- Display the room's ID -->
+                        <td>@room.RoomID</td>
+
+                        <!-- Display the room number -->
+                        <td>@room.RoomNumber</td>
+
+                        <!-- Show the room type (Single or Dormitory) -->
+                        <td>@room.RoomType</td>
+
+                        <!-- Show how many people are in the room out of its capacity -->
+                        <td>
+                            @if (room.RoomType == RoomType.Single)
+                            {
+                                // If it's a Single room, show 1/1 if there is a lecturer, otherwise 0/1
+                                if (room.Lecturer != null)
+                                {
+                                    <span class="badge bg-primary">1 / 1</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-primary">0 / 1</span>
+                                }
+                            }
+                            else
+                            {
+                                // For dormitory, count the number of students
+                                int studentCount = 0;
+                                if (room.Students != null)
+                                {
+                                    studentCount = room.Students.Count;
+                                }
+
+                                // Show student count like "5 / 8"
+                                <span class="badge bg-info text-dark">@studentCount / @room.Capacity</span>
+                            }
+                        </td>
+
+                        <!-- Show which floor the room is on -->
+                        <td>@room.Floor</td>
+
+                        <!-- Show which building (A or B) the room belongs to -->
+                        <td>@room.Building</td>
+
+                        <!-- Show who is occupying the room -->
+                        <td>
+                            @if (room.RoomType == RoomType.Single && room.Lecturer != null)
+                            {
+                                // If it's a single room and has a lecturer
+                                <span class="badge bg-primary">Lecturer</span>
+                            }
+                            else if (room.RoomType == RoomType.Dormitory && room.Students != null && room.Students.Count > 0)
+                            {
+                                // If it's a dormitory and has students
+                                <span class="badge bg-info">Student(s)</span>
+                            }
+                            else
+                            {
+                                // Otherwise, the room is empty
+                                <span class="badge bg-secondary">Unoccupied</span>
+                            }
+                        </td>
+
+                        <!-- Buttons to edit or delete the room -->
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@room.RoomID" class="btn btn-sm btn-primary">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@room.RoomID" class="btn btn-sm btn-danger">
+                                <i class="bi bi-trash"></i> Delete
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

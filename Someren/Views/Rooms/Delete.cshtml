@@ -1,20 +1,36 @@
 ﻿@model Someren.Models.Room
 
 @{
+    // Set the title for the page (appears in the tab and header)
     ViewData["Title"] = "Delete Room";
 }
 
+<!-- Main container with spacing from the top -->
 <div class="container mt-5">
+
+    <!-- Bootstrap card with shadow effect -->
     <div class="card shadow-lg">
+
+        <!-- Card header in red to show it's a delete action -->
         <div class="card-header bg-danger text-white rounded-top-5">
             <h1 class="mb-0">Delete Room</h1>
         </div>
-        <div class="card-body">
-            <p class="text-muted">Are you sure you want to delete this room? This action cannot be undone.</p>
 
+        <!-- Card body where the form and message are -->
+        <div class="card-body">
+
+            <!-- Warning message to the user -->
+            <p class="text-muted">
+                Are you sure you want to delete this room? This action cannot be undone.
+            </p>
+
+            <!-- Form that submits to the Delete action -->
             <form asp-action="Delete" method="post">
+
+                <!-- Hidden input to pass RoomID to the controller -->
                 <input type="hidden" asp-for="RoomID" />
 
+                <!-- Row to display Room Number and Room Type (read-only) -->
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="fw-bold" asp-for="RoomNumber">Room Number:</label>
@@ -26,6 +42,7 @@
                     </div>
                 </div>
 
+                <!-- Row to display Capacity, Floor, and Building (read-only) -->
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <label class="fw-bold" asp-for="Capacity">Capacity:</label>
@@ -41,12 +58,16 @@
                     </div>
                 </div>
 
+                <!-- Buttons: Back and Delete -->
                 <div class="d-flex justify-content-between mt-4">
+                    <!-- Go back to list of rooms -->
                     <a asp-action="Index" class="btn btn-secondary">
                         <i class="bi bi-arrow-left"></i> Go Back to Room List
                     </a>
 
-                    <button type="submit" class="btn btn-danger px-4" onclick="return confirm('Are you sure you want to delete this room?');">
+                    <!-- Confirm delete with red button -->
+                    <button type="submit" class="btn btn-danger px-4"
+                            onclick="return confirm('Are you sure you want to delete this room?');">
                         <i class="bi bi-trash"></i> Delete Room
                     </button>
                 </div>
@@ -54,5 +75,3 @@
         </div>
     </div>
 </div>
-
-
