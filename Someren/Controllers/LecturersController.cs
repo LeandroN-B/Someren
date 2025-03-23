@@ -18,14 +18,11 @@ namespace Someren.Controllers
 
         public IActionResult Index()
         {
-            List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers()
-                                          .OrderBy(l => l.LastName) // Sort by Last Name (A-Z)
-                                          .ToList();
+            List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers();
             return View(lecturers);
         }
 
-
-            [HttpGet]
+        [HttpGet]
         public IActionResult Create()
         {
             // Get all rooms from the database
@@ -137,6 +134,6 @@ namespace Someren.Controllers
                 return View(lecturer);
             }
         }
-        
+
     }
 }

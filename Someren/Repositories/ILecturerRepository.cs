@@ -10,5 +10,7 @@
         void UpdateLecturer(Lecturer lecturer);
         void DeleteLecturer(Lecturer lecturer);
         List<Lecturer> GetLecturersInRoom(int roomId);
+
+
     }
 }

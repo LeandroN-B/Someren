@@ -32,7 +32,7 @@ namespace Someren.Repositories
                         string lastName = reader["lastName"]?.ToString() ?? string.Empty;
                         string phoneNumber = reader["phoneNumber"]?.ToString() ?? string.Empty;
                         DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
-                        int roomID = Convert.ToInt32(reader["roomID"]);
+                        int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0;//handle cases where the roomID is NULL
 
                         var lecturer = new Lecturer(lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID);
                         lecturers.Add(lecturer);
@@ -165,3 +165,4 @@ namespace Someren.Repositories
         }
     }
 }
+
