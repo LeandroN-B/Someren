@@ -19,7 +19,7 @@ namespace Someren.Repositories
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "SELECT RoomID, RoomNumber, RoomType, Capacity, Floor, Building FROM Rooms";
+                string query = "SELECT RoomID, RoomNumber, RoomType, Capacity, Floor, Building FROM Room";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     connection.Open();
@@ -47,7 +47,7 @@ namespace Someren.Repositories
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "SELECT RoomID, RoomNumber, RoomType, Capacity, Floor, Building FROM Rooms WHERE RoomID = @RoomID";
+                string query = "SELECT RoomID, RoomNumber, RoomType, Capacity, Floor, Building FROM Room WHERE RoomID = @RoomID";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@RoomID", id);
@@ -72,33 +72,6 @@ namespace Someren.Repositories
             return null;
         }
 
-        // THIS IS FOR GETTING LECTURERS IN A SEPARATE WAY
-        public Lecturer? GetLecturerByRoomID(int roomID)
-        {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                string query = "SELECT LecturerID, FirstName, LastName FROM Lecturer WHERE RoomID = @RoomID";
-                using (SqlCommand command = new SqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@RoomID", roomID);
-                    connection.Open();
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            return new Lecturer
-                            {
-                                LecturerID = reader.GetInt32(0),
-                                FirstName = reader.GetString(1),
-                                LastName = reader.GetString(2)
-                            };
-                        }
-                    }
-                }
-            }
-            return null; // No lecturer assigned to this room
-        }
-
         public void AddRoom(Room room)
         {
             if (room.RoomType == RoomType.Single && room.Capacity > 1)
@@ -108,7 +81,7 @@ namespace Someren.Repositories
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "INSERT INTO Rooms (RoomNumber, RoomType, Capacity, Floor, Building) VALUES (@RoomNumber, @RoomType, @Capacity, @Floor, @Building)";
+                string query = "INSERT INTO Room (RoomNumber, RoomType, Capacity, Floor, Building) VALUES (@RoomNumber, @RoomType, @Capacity, @Floor, @Building)";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@RoomNumber", room.RoomNumber);
@@ -132,7 +105,7 @@ namespace Someren.Repositories
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "UPDATE Rooms SET RoomNumber = @RoomNumber, RoomType = @RoomType, Capacity = @Capacity, Floor = @Floor, Building = @Building WHERE RoomID = @RoomID";
+                string query = "UPDATE Room SET RoomNumber = @RoomNumber, RoomType = @RoomType, Capacity = @Capacity, Floor = @Floor, Building = @Building WHERE RoomID = @RoomID";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@RoomID", room.RoomID);
@@ -156,7 +129,7 @@ namespace Someren.Repositories
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "DELETE FROM Rooms WHERE RoomID = @RoomID";
+                string query = "DELETE FROM Room WHERE RoomID = @RoomID";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@RoomID", room.RoomID);

@@ -20,7 +20,7 @@ namespace Someren.Controllers
             List<Room> rooms = _roomRepository.GetAllRooms();
             List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers();
 
-            foreach (var room in rooms)
+            foreach (Room room in rooms)
             {
                 room.Lecturer = lecturers.FirstOrDefault(l => l.RoomID == room.RoomID);
             }
@@ -31,19 +31,42 @@ namespace Someren.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            return View();
+            List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers();
+            List<Room> rooms = _roomRepository.GetAllRooms();
+
+            // Get lecturers who are not assigned to any room
+            var availableLecturers = lecturers
+                .Where(l => !rooms.Any(r => r.RoomID == l.RoomID))
+                .ToList();
+
+            ViewBag.Lecturers = availableLecturers;
+            return View(new Room());
         }
 
+
         [HttpPost]
-        public IActionResult Create(Room room)
+        public IActionResult Create(Room room, int? LecturerID)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    ViewBag.Lecturers = _lecturerRepository.GetAllLecturers();
+                    return View(room);
+                }
+
                 _roomRepository.AddRoom(room);
+
+                if (room.RoomType == RoomType.Single && LecturerID.HasValue)
+                {
+                    _lecturerRepository.AssignRoom(LecturerID.Value, room.RoomID);
+                }
+
                 return RedirectToAction("Index");
             }
             catch (Exception)
             {
+                ViewBag.Lecturers = _lecturerRepository.GetAllLecturers();
                 return View(room);
             }
         }
@@ -83,8 +106,22 @@ namespace Someren.Controllers
             }
 
             Room? room = _roomRepository.GetRoomByID((int)id);
+
+            if (room == null)
+            {
+                return NotFound();
+            }
+
+            // Get and assing the lecturer if the room is a single room
+            if (room.RoomType == RoomType.Single)
+            {
+                Lecturer? lecturer = _lecturerRepository.GetLecturerByRoomID(room.RoomID);
+                room.Lecturer = lecturer;
+            }
+
             return View(room);
         }
+
 
         [HttpPost]
         public IActionResult Edit(Room room)

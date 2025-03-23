@@ -42,7 +42,6 @@ namespace Someren.Repositories
             return lecturers;
         }
 
-        // Implement the GetLecturerByID method
         public Lecturer? GetLecturerByID(int id)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -68,7 +67,7 @@ namespace Someren.Repositories
                     }
                 }
             }
-            return null;  // Return null if no lecturer with the given ID is found
+            return null;
         }
 
         public void AddLecturer(Lecturer lecturer)
@@ -132,36 +131,67 @@ namespace Someren.Repositories
             }
         }
 
-        public List<Lecturer> GetLecturersInRoom(int roomId)
+        public bool IsRoomAvailableForLecturer(int roomId)
         {
-            List<Lecturer> lecturersInRoom = new List<Lecturer>();
-
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "SELECT * FROM Lecturer WHERE roomID = @RoomID";
+                string query = "SELECT COUNT(*) FROM Lecturer WHERE RoomID = @RoomID";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@RoomID", roomId);
                     connection.Open();
+                    int count = (int)command.ExecuteScalar();
+                    return count == 0;
+                }
+            }
+        }
+
+        public Lecturer? GetLecturerByRoomID(int roomID)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT LecturerID, FirstName, LastName, PhoneNumber, DateOfBirth, RoomID FROM Lecturer WHERE RoomID = @RoomID";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@RoomID", roomID);
+                    connection.Open();
                     using (SqlDataReader reader = command.ExecuteReader())
                     {
-                        while (reader.Read())
+                        if (reader.Read())
                         {
-                            lecturersInRoom.Add(new Lecturer
-                            {
-                                LecturerID = Convert.ToInt32(reader["lecturerID"]),
-                                FirstName = reader["firstName"].ToString() ?? string.Empty,
-                                LastName = reader["lastName"].ToString() ?? string.Empty,
-                                PhoneNumber = reader["phoneNumber"].ToString() ?? string.Empty,
-                                DateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]),
-                                RoomID = Convert.ToInt32(reader["roomID"])
-                            });
+                            return new Lecturer(
+                                Convert.ToInt32(reader["LecturerID"]),
+                                reader["FirstName"].ToString() ?? string.Empty,
+                                reader["LastName"].ToString() ?? string.Empty,
+                                reader["PhoneNumber"].ToString() ?? string.Empty,
+                                Convert.ToDateTime(reader["DateOfBirth"]),
+                                Convert.ToInt32(reader["RoomID"])
+                            );
                         }
                     }
                 }
             }
+            return null;
+        }
 
-            return lecturersInRoom; // Return the list of lecturers in the room
+        public void AssignRoom(int lecturerId, int roomId)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "UPDATE Lecturer SET RoomID = @RoomID WHERE LecturerID = @LecturerID";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@RoomID", roomId);
+                    command.Parameters.AddWithValue("@LecturerID", lecturerId);
+
+                    connection.Open();
+                    int affectedRows = command.ExecuteNonQuery();
+                    if (affectedRows == 0)
+                    {
+                        throw new Exception("Room assignment failed!");
+                    }
+                }
+            }
         }
     }
 }
