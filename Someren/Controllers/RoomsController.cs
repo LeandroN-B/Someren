@@ -81,34 +81,6 @@ namespace Someren.Controllers
             List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers();
             List<Room> rooms = _roomRepository.GetAllRooms();
 
-            // Create a new list to store available lecturers
-            List<Lecturer> availableLecturers = new List<Lecturer>();
-
-            // Check which lecturers do not have a room
-            foreach (Lecturer lecturer in lecturers)
-            {
-                bool hasRoom = false;
-
-                // Check each room to see if this lecturer is assigned
-                foreach (Room room in rooms)
-                {
-                    if (lecturer.RoomID == room.RoomID)
-                    {
-                        hasRoom = true;
-                        break; // No need to keep checking if we found a match
-                    }
-                }
-
-                // If lecturer has no room, add to available list
-                if (!hasRoom)
-                {
-                    availableLecturers.Add(lecturer);
-                }
-            }
-
-            // Pass the list to the view
-            ViewBag.Lecturers = availableLecturers;
-
             // Return the empty Room model for the view form
             return View(new Room());
         }
@@ -177,21 +149,19 @@ namespace Someren.Controllers
                 return NotFound();
             }
 
-            // Get and assing the lecturer if the room is a single room
-            if (room.RoomType == RoomType.Single)
+            // Populate occupancy details
+            if (room.RoomType == RoomType.Single && room.LecturerID.HasValue)
             {
-                Lecturer? lecturer = _lecturerRepository.GetLecturerByRoomID(room.RoomID);
-                room.Lecturer = lecturer;
+                room.Lecturer = _lecturerRepository.GetLecturerByID(room.LecturerID.Value);
             }
-
-            if (room.RoomType == RoomType.Dormitory)
+            else if (room.RoomType == RoomType.Dormitory)
             {
-                List<Student> students = _studentRepository.GetAllStudents();
-                room.Students = students.Where(s => s.RoomID == room.RoomID).ToList();
+                room.Students = _studentRepository.GetStudentsByRoomID(room.RoomID);
             }
 
             return View(room);
         }
+
 
 
         [HttpPost]
