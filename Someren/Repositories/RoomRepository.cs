@@ -19,7 +19,7 @@ namespace Someren.Repositories
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "SELECT RoomID, RoomNumber, RoomType, Capacity, Floor, Building FROM Room";
+                string query = "SELECT RoomID, RoomNumber, RoomType, Capacity, Floor, Building FROM Room ORDER BY RoomNumber";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     connection.Open();

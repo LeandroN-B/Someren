@@ -47,30 +47,24 @@
 
                 <div class="mb-3">
                     <label class="fw-bold">Currently Occupied By:</label>
-                    <div class="p-2 border rounded bg-light">
-                        @if (Model.RoomType == RoomType.Single && Model.Lecturer != null)
+
+                    @if (Model.RoomType == RoomType.Single && Model.Lecturer != null)
+                    {
+                        <input type="text" class="form-control mb-2" readonly value="Lecturer: @Model.Lecturer.FullName" />
+                    }
+                    else if (Model.RoomType == RoomType.Dormitory && Model.Students != null && Model.Students.Any())
+                    {
+                        @foreach (Student student in Model.Students)
                         {
-                            <span class="text-primary fw-semibold">
-                                Lecturer: @Model.Lecturer.FullName
-                            </span>
+                            <input type="text" class="form-control mb-2" readonly value="@student.FirstName @student.LastName (@student.StudentNumber)" />
                         }
-                        @* Uncomment when Students are available *@
-                        @* else if (Model.RoomType == RoomType.Dormitory && Model.Students != null && Model.Students.Any())
-                        {
-                            <span class="text-info fw-semibold">Students:</span>
-                            <ul class="mb-0">
-                                @foreach (var student in Model.Students)
-                                {
-                                    <li>@student.FirstName @student.LastName</li>
-                                }
-                            </ul>
-                        } *@
-                        else
-                        {
-                            <span class="text-muted">Unoccupied</span>
-                        }
-                    </div>
+                    }
+                    else
+                    {
+                        <input type="text" class="form-control" readonly value="Unoccupied" />
+                    }
                 </div>
+
 
                 <div class="d-flex justify-content-between mt-4">
                     <a asp-action="Index" class="btn btn-secondary">
