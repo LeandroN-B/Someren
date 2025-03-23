@@ -104,6 +104,7 @@ namespace Someren.Controllers
             }
         }
 
+        // GET: Edit Lecturer
         [HttpGet]
         public IActionResult Edit(int? id)
         {
@@ -129,18 +130,44 @@ namespace Someren.Controllers
             return View(lecturer);
         }
 
+        // POST: Edit Lecturer
         [HttpPost]
         public IActionResult Edit(Lecturer lecturer)
         {
             try
             {
+                // Ensure that the room assignment is not modified
+                Lecturer? existingLecturer = _lecturerRepository.GetLecturerByID(lecturer.LecturerID);
+                if (existingLecturer == null)
+                {
+                    return NotFound();
+                }
+
+                // Retain the original room assignment (do not allow changes to RoomID)
+                lecturer.RoomID = existingLecturer.RoomID;
+
+                // Update lecturer details without modifying the room
                 _lecturerRepository.UpdateLecturer(lecturer);
+
                 return RedirectToAction("Index");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                // Repopulate available rooms before returning the view in case of error
+                List<Room> availableRooms = _roomRepository.GetAllRooms()
+                    .Where(r => r.RoomType == RoomType.Single &&
+                                (_lecturerRepository.GetLecturerByRoomID(r.RoomID) == null || r.RoomID == lecturer.RoomID))
+                    .ToList();
+
+                ViewBag.AvailableRooms = availableRooms;
+
+                // Log exception for debugging
+                Console.WriteLine($"Error: {ex.Message}");
+
                 return View(lecturer);
             }
         }
+
+
     }
 }
