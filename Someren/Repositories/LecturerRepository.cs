@@ -32,7 +32,7 @@ namespace Someren.Repositories
                         string lastName = reader["lastName"]?.ToString() ?? string.Empty;
                         string phoneNumber = reader["phoneNumber"]?.ToString() ?? string.Empty;
                         DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
-                        int roomID = Convert.ToInt32(reader["roomID"]);
+                        int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0;
 
                         var lecturer = new Lecturer(lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID);
                         lecturers.Add(lecturer);
@@ -60,7 +60,7 @@ namespace Someren.Repositories
                             string lastName = reader["lastName"].ToString() ?? string.Empty;
                             string phoneNumber = reader["phoneNumber"].ToString() ?? string.Empty;
                             DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
-                            int roomID = Convert.ToInt32(reader["roomID"]);
+                            int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0;
 
                             return new Lecturer(lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID);
                         }
@@ -134,6 +134,38 @@ namespace Someren.Repositories
             }
         }
 
+        public List<Lecturer> GetLecturersByLastName(string lastName)
+        {
+            List<Lecturer> lecturers = new List<Lecturer>();
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID FROM Lecturer WHERE lastName LIKE @LastName";
+                using (SqlCommand cmd = new SqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@LastName", "%" + lastName + "%"); // supports partial match
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            int lecturerID = Convert.ToInt32(reader["lecturerID"]);
+                            string firstName = reader["firstName"]?.ToString() ?? string.Empty;
+                            string lastNameValue = reader["lastName"]?.ToString() ?? string.Empty;
+                            string phoneNumber = reader["phoneNumber"]?.ToString() ?? string.Empty;
+                            DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
+                            int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0; // // roomID can be NULL in the database if the lecturer is not assigned a room yet.
+                                                                                                              
+
+                            lecturers.Add(new Lecturer(lecturerID, firstName, lastNameValue, phoneNumber, dateOfBirth, roomID));
+                        }
+                    }
+                }
+            }
+
+            return lecturers;
+        }
+
         public bool IsRoomAvailableForLecturer(int roomId)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -175,6 +207,20 @@ namespace Someren.Repositories
                 }
             }
             return null;
+        }
+
+        public bool CanAssignRoomToLecturer(int lecturerId, int newRoomId)
+        {
+            // Get the lecturer who is being edited
+            Lecturer? existingLecturer = GetLecturerByID(lecturerId);
+            if (existingLecturer == null)
+                return false;
+
+            // Get the lecturer (if any) already assigned to the desired room
+            Lecturer? otherLecturer = GetLecturerByRoomID(newRoomId);
+
+            // Allow if the room is not taken OR is the same one the lecturer already has
+            return otherLecturer == null || otherLecturer.LecturerID == lecturerId;
         }
 
         public void AssignRoom(int lecturerId, int roomId)

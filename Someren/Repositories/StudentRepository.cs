@@ -32,7 +32,7 @@ namespace Someren.Repositories
                         string lastName = reader["lastName"].ToString() ?? string.Empty;
                         string phoneNumber = reader["phoneNumber"].ToString() ?? string.Empty;
                         string className = reader["class"].ToString() ?? string.Empty;
-                        int roomID = Convert.ToInt32(reader["roomID"]);
+                        int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0;
 
                         students.Add(new Student(studentID, studentNumber, firstName, lastName, phoneNumber, className, roomID));
                     }
@@ -61,8 +61,7 @@ namespace Someren.Repositories
                             string lastName = reader["lastName"].ToString() ?? string.Empty;
                             string phoneNumber = reader["phoneNumber"].ToString() ?? string.Empty;
                             string className = reader["class"].ToString() ?? string.Empty;
-                            int roomID = Convert.ToInt32(reader["roomID"]);
-
+                            int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0;
                             return new Student(studentID, studentNumber, firstName, lastName, phoneNumber, className, roomID);
                         }
                     }
@@ -92,8 +91,7 @@ namespace Someren.Repositories
                             string lastName = reader["lastName"].ToString() ?? string.Empty;
                             string phoneNumber = reader["phoneNumber"].ToString() ?? string.Empty;
                             string className = reader["class"].ToString() ?? string.Empty;
-                            int roomID = Convert.ToInt32(reader["roomID"]);
-
+                            int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0;
                             students.Add(new Student(studentID, studentNumber, firstName, lastName, phoneNumber, className, roomID));
                         }
                     }

@@ -12,6 +12,8 @@
 
         Lecturer? GetLecturerByRoomID(int roomId);
         bool IsRoomAvailableForLecturer(int roomId);
+        bool CanAssignRoomToLecturer(int lecturerId, int newRoomId);
         void AssignRoom(int lecturerId, int roomId);
+        List<Lecturer> GetLecturersByLastName(string lastName);
     }
 }
