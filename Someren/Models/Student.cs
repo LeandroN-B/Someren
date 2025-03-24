@@ -25,14 +25,14 @@ namespace Someren.Models
 
         [Required]
         public DateTime DateOfBirth { get; set; }
-        public int RoomID { get; set; }
+        public int? RoomID { get; set; }
 
         public string FullName => $"{FirstName} {LastName}";
 
         public string ClassName { get; set; }
 
 
-        public Student(int studentID, string studentNumber, string firstName, string lastName, string phoneNumber, string className, int roomID)
+        public Student(int studentID, string studentNumber, string firstName, string lastName, string phoneNumber, string className, int? roomID)
         {
             StudentID = studentID;
             StudentNumber = studentNumber;

@@ -52,18 +52,24 @@ namespace Someren.Controllers
         {
             try
             {
-                if (lecturer.RoomID == 0)
+                // Check if a room is selected
+                if (lecturer.RoomID == 0 || lecturer.RoomID == null)
                 {
                     ModelState.AddModelError("", "Please select a room.");
                     return View(lecturer);
                 }
 
-                if (!_lecturerRepository.IsRoomAvailableForLecturer(lecturer.RoomID))
+                // Store RoomID as a regular int for safety
+                int roomId = lecturer.RoomID.Value;
+
+                // Check if room is already taken
+                if (!_lecturerRepository.IsRoomAvailableForLecturer(roomId))
                 {
                     ModelState.AddModelError("", "This room is already assigned to a lecturer.");
                     return View(lecturer);
                 }
 
+                // Save the lecturer
                 _lecturerRepository.AddLecturer(lecturer);
                 return RedirectToAction("Index");
             }
@@ -171,3 +177,4 @@ namespace Someren.Controllers
 
     }
 }
+//*

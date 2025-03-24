@@ -9,7 +9,7 @@ namespace Someren.Models
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
-        public int RoomID { get; set; }
+        public int? RoomID { get; set; }
         public DateTime DateOfBirth { get; set; }
         public DateTime CheckInDate { get; set; } = DateTime.Now;
         public DateTime CheckOutDate { get; set; } = DateTime.Now.AddDays(7);

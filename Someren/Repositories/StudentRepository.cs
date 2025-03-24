@@ -32,7 +32,17 @@ namespace Someren.Repositories
                         string lastName = reader["lastName"].ToString() ?? string.Empty;
                         string phoneNumber = reader["phoneNumber"].ToString() ?? string.Empty;
                         string className = reader["class"].ToString() ?? string.Empty;
-                        int roomID = Convert.ToInt32(reader["roomID"]);
+                        int? roomID;
+
+                        if (reader["roomID"] == DBNull.Value)
+                        {
+                            roomID = null;
+                        }
+                        else
+                        {
+                            roomID = Convert.ToInt32(reader["roomID"]);
+                        }
+
 
                         students.Add(new Student(studentID, studentNumber, firstName, lastName, phoneNumber, className, roomID));
                     }
@@ -61,7 +71,17 @@ namespace Someren.Repositories
                             string lastName = reader["lastName"].ToString() ?? string.Empty;
                             string phoneNumber = reader["phoneNumber"].ToString() ?? string.Empty;
                             string className = reader["class"].ToString() ?? string.Empty;
-                            int roomID = Convert.ToInt32(reader["roomID"]);
+                            int? roomID;
+
+                            if (reader["roomID"] == DBNull.Value)
+                            {
+                                roomID = null;
+                            }
+                            else
+                            {
+                                roomID = Convert.ToInt32(reader["roomID"]);
+                            }
+
 
                             return new Student(studentID, studentNumber, firstName, lastName, phoneNumber, className, roomID);
                         }
@@ -92,7 +112,17 @@ namespace Someren.Repositories
                             string lastName = reader["lastName"].ToString() ?? string.Empty;
                             string phoneNumber = reader["phoneNumber"].ToString() ?? string.Empty;
                             string className = reader["class"].ToString() ?? string.Empty;
-                            int roomID = Convert.ToInt32(reader["roomID"]);
+                            int? roomID;
+
+                            if (reader["roomID"] == DBNull.Value)
+                            {
+                                roomID = null;
+                            }
+                            else
+                            {
+                                roomID = Convert.ToInt32(reader["roomID"]);
+                            }
+
 
                             students.Add(new Student(studentID, studentNumber, firstName, lastName, phoneNumber, className, roomID));
                         }
@@ -136,7 +166,7 @@ namespace Someren.Repositories
                     command.Parameters.AddWithValue("@LastName", student.LastName);
                     command.Parameters.AddWithValue("@PhoneNumber", student.PhoneNumber);
                     command.Parameters.AddWithValue("@Class", student.ClassName);
-                    command.Parameters.AddWithValue("@RoomID", student.RoomID);
+                    command.Parameters.AddWithValue("@RoomID", student.RoomID == null ? DBNull.Value : (object)student.RoomID);
 
                     connection.Open();
                     int affectedRows = command.ExecuteNonQuery();
