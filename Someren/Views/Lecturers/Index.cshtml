@@ -38,9 +38,9 @@
 			</tr>
 		</thead>
 		<tbody>
-			@foreach (var lecturer in Model)
+			@foreach (var lecturer in Model.OrderBy(l => l.LastName))
 			{
-				<tr>
+				<tr class ="text-center">
 					<td>@lecturer.FirstName</td>
 					<td>@lecturer.LastName</td>
 					<td>@lecturer.PhoneNumber</td>

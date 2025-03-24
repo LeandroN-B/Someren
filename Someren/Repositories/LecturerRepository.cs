@@ -23,21 +23,34 @@ namespace Someren.Repositories
                 connection.Open();
                 string query = "SELECT lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID FROM Lecturer";
                 using (SqlCommand cmd = new SqlCommand(query, connection))
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
+                    try
                     {
-                        int lecturerID = Convert.ToInt32(reader["lecturerID"]);
-                        string firstName = reader["firstName"]?.ToString() ?? string.Empty;
-                        string lastName = reader["lastName"]?.ToString() ?? string.Empty;
-                        string phoneNumber = reader["phoneNumber"]?.ToString() ?? string.Empty;
-                        DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
-                        int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0;
 
-                        var lecturer = new Lecturer(lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID);
-                        lecturers.Add(lecturer);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                int lecturerID = Convert.ToInt32(reader["lecturerID"]);
+                                string firstName = reader["firstName"]?.ToString() ?? string.Empty;
+                                string lastName = reader["lastName"]?.ToString() ?? string.Empty;
+                                string phoneNumber = reader["phoneNumber"]?.ToString() ?? string.Empty;
+                                DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
+                                int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0;
+
+                                var lecturer = new Lecturer(lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID);
+                                lecturers.Add(lecturer);
+                            }
+                        }
                     }
-                }
+                    catch (SqlException ex)
+                    {
+                        throw new Exception("Something went wrong with the database", ex);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("Something went wrong reading data", ex);
+                    }
+                //end method refactoring
             }
             return lecturers;
         }
@@ -49,6 +62,7 @@ namespace Someren.Repositories
                 string query = "SELECT lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID FROM Lecturer WHERE lecturerID = @LecturerID";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
+
                     command.Parameters.AddWithValue("@LecturerID", id);
                     connection.Open();
                     using (SqlDataReader reader = command.ExecuteReader())
@@ -104,18 +118,22 @@ namespace Someren.Repositories
                     command.Parameters.AddWithValue("@PhoneNumber", lecturer.PhoneNumber);
                     command.Parameters.AddWithValue("@DateOfBirth", lecturer.DateOfBirth);
                     command.Parameters.AddWithValue("@RoomID", lecturer.RoomID);
-
-                    connection.Open();
-                    int affectedRows = command.ExecuteNonQuery();
-                    if (affectedRows == 0)
+                    try
                     {
-                        throw new Exception("No records updated!");
+                        connection.Open();
+                        int affectedRows = command.ExecuteNonQuery();
+                        if (affectedRows == 0)
+                        {
+                            throw new Exception("No records updated!");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("Something went wrong", ex);
                     }
                 }
             }
         }
-
-
         public void DeleteLecturer(Lecturer lecturer)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -144,7 +162,7 @@ namespace Someren.Repositories
                 string query = "SELECT lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID FROM Lecturer WHERE lastName LIKE @LastName";
                 using (SqlCommand cmd = new SqlCommand(query, connection))
                 {
-                    cmd.Parameters.AddWithValue("@LastName", "%" + lastName + "%"); // supports partial match
+                    cmd.Parameters.AddWithValue("@LastName", "%" + lastName + "%");
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
@@ -155,7 +173,7 @@ namespace Someren.Repositories
                             string phoneNumber = reader["phoneNumber"]?.ToString() ?? string.Empty;
                             DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
                             int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0; // // roomID can be NULL in the database if the lecturer is not assigned a room yet.
-                                                                                                              
+
 
                             lecturers.Add(new Lecturer(lecturerID, firstName, lastNameValue, phoneNumber, dateOfBirth, roomID));
                         }
@@ -164,21 +182,6 @@ namespace Someren.Repositories
             }
 
             return lecturers;
-        }
-
-        public bool IsRoomAvailableForLecturer(int roomId)
-        {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                string query = "SELECT COUNT(*) FROM Lecturer WHERE RoomID = @RoomID";
-                using (SqlCommand command = new SqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@RoomID", roomId);
-                    connection.Open();
-                    int count = (int)command.ExecuteScalar();
-                    return count == 0;
-                }
-            }
         }
 
         public Lecturer? GetLecturerByRoomID(int roomID)
@@ -208,39 +211,32 @@ namespace Someren.Repositories
             }
             return null;
         }
-
-        public bool CanAssignRoomToLecturer(int lecturerId, int newRoomId)
+        public bool IsRoomFreeForAddLecturer(int roomId)
         {
-            // Get the lecturer who is being edited
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT COUNT(*) FROM Lecturer WHERE RoomID = @RoomID";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@RoomID", roomId);
+                    connection.Open();
+                    int count = (int)command.ExecuteScalar();
+                    return count == 0;
+                }
+            }
+        }
+        public bool IsRoomFreeForEditLecturer(int lecturerId, int newRoomId)
+        {
             Lecturer? existingLecturer = GetLecturerByID(lecturerId);
             if (existingLecturer == null)
                 return false;
 
-            // Get the lecturer (if any) already assigned to the desired room
+            // check if it's already assigned to the room
             Lecturer? otherLecturer = GetLecturerByRoomID(newRoomId);
 
-            // Allow if the room is not taken OR is the same one the lecturer already has
+            // if there is a free room or if is going to be at the same room
             return otherLecturer == null || otherLecturer.LecturerID == lecturerId;
         }
 
-        public void AssignRoom(int lecturerId, int roomId)
-        {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                string query = "UPDATE Lecturer SET RoomID = @RoomID WHERE LecturerID = @LecturerID";
-                using (SqlCommand command = new SqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@RoomID", roomId);
-                    command.Parameters.AddWithValue("@LecturerID", lecturerId);
-
-                    connection.Open();
-                    int affectedRows = command.ExecuteNonQuery();
-                    if (affectedRows == 0)
-                    {
-                        throw new Exception("Room assignment failed!");
-                    }
-                }
-            }
-        }
     }
 }
