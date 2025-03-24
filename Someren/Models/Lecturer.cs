@@ -26,7 +26,7 @@ namespace Someren.Models
             }
         }
 
-        public Lecturer() { }
+        public Lecturer() { }//parameterless ctor
 
         public Lecturer(int lecturerID, string firstName, string lastName, string phoneNumber, DateTime dateOfBirth, int roomID)
         {
