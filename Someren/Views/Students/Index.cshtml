@@ -1,45 +1,49 @@
 ﻿@model List<Someren.Models.Student>
 
-<h2>Student List</h2>
+@{
+    ViewData["Title"] = "Students";
+}
 
-<!-- Sort Form -->
-<form method="get">
-    <select name="sortBy">
-        <option value="lastName" selected>Sort by Last Name</option>
-        <option value="firstName">Sort by First Name</option>
-    </select>
-    <button type="submit" class="btn btn-primary">Filter</button>
-</form>
+<div class="container mt-4">
+    <!-- Header + Add button -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="text-primary">@ViewData["Title"]</h1>
+        <a asp-action="Create" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Add Student
+        </a>
+    </div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Student ID</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Phone Number</th>
-            <th>Class</th>
-            <th>Room</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var student in Model)
-        {
-            <tr>
-                <td>@student.StudentID</td>
-                <td>@student.FirstName</td>
-                <td>@student.LastName</td>
-                <td>@student.PhoneNumber</td>
-                <td>@student.ClassName</td>
-                <td>@student.RoomID</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@student.StudentID" class="btn btn-primary">Edit</a>
-                    <a asp-action="Delete" asp-route-id="@student.StudentID" class="btn btn-danger">Delete</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<a asp-action="Create" class="btn btn-success">Add New Student</a>
+    <!-- Student Table -->
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered align-middle">
+            <thead class="table-primary text-center table-success">
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Phone Number</th>
+                    <th>Class</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var student in Model)
+                {
+                    <tr class="text-center">
+                        <td>@student.FirstName</td>
+                        <td>@student.LastName</td>
+                        <td>@student.PhoneNumber</td>
+                        <td>@student.ClassName</td>   
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@student.StudentID" class="btn btn-sm btn-primary">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@student.StudentID" class="btn btn-sm btn-danger">
+                                <i class="bi bi-trash"></i> Delete
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

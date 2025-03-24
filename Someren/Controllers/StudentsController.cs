@@ -116,7 +116,7 @@ namespace Someren.Controllers
             }
         }
 
-        // Add Student
+        // Show the Create Student form
         public IActionResult Create()
         {
             return View();
@@ -130,6 +130,7 @@ namespace Someren.Controllers
             {
                 try
                 {
+                    // No automatic generation here anymore
                     _studentRepository.AddStudent(student);
                     return RedirectToAction(nameof(Index));
                 }
@@ -141,5 +142,8 @@ namespace Someren.Controllers
 
             return View(student);
         }
+
+
+
     }
 }

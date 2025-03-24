@@ -143,6 +143,7 @@ namespace Someren.Repositories
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 string query = "INSERT INTO Student (studentNumber, firstName, lastName, phoneNumber, class, roomID) VALUES (@StudentNumber, @FirstName, @LastName, @PhoneNumber, @Class, @RoomID)";
+
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@StudentNumber", student.StudentNumber);
@@ -157,6 +158,7 @@ namespace Someren.Repositories
                 }
             }
         }
+
 
         public void UpdateStudent(Student student)
         {
@@ -199,16 +201,6 @@ namespace Someren.Repositories
                     }
                 }
             }
-        }
-
-        public Student? GetStudentByID(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<Student> GetStudentsByRoomID(int roomId)
-        {
-            throw new NotImplementedException();
         }
     }
 }
