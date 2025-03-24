@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Add Room";
+
 }
 
 <!-- Page container with margin -->
@@ -27,6 +28,8 @@
                         <small class="form-text text-muted">
                             Example: A0-01 (Building A, Floor 0, Room 01). Format: [Building][Floor]-[RoomNo]
                         </small>
+                        <!-- Warning if room already exist -->
+                        <span asp-validation-for="RoomNumber" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6">
@@ -68,7 +71,23 @@
                         </select>
                     </div>
                 </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Go Back to Room List
+                    </a>
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-check-lg"></i> Save Changes
+                    </button>
+                </div>
             </form>
         </div>
     </div>
 </div>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
