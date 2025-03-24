@@ -1,5 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using Someren.Models;
+using System;
+using System.Collections.Generic;
 
 namespace Someren.Repositories
 {
@@ -30,13 +32,12 @@ namespace Someren.Repositories
                         students.Add(new Student(
                         reader["studentID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["studentID"]),
                         reader["studentNumber"] == DBNull.Value ? string.Empty : reader["studentNumber"].ToString(),
-                        reader["firstName" ] == DBNull.Value ? string.Empty : reader["firstName"].ToString(),
+                        reader["firstName"] == DBNull.Value ? string.Empty : reader["firstName"].ToString(),
                         reader["lastName"] == DBNull.Value ? string.Empty : reader["lastName"].ToString(),
                         reader["phoneNumber"] == DBNull.Value ? string.Empty : reader["phoneNumber"].ToString(),
                         reader["class"] == DBNull.Value ? string.Empty : reader["class"].ToString(),
                         reader["roomID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["roomID"])
                        ));
-
                     }
                 }
             }
@@ -44,8 +45,39 @@ namespace Someren.Repositories
             return students;
         }
 
+        // Add the GetStudentsByLastName method here
+        public List<Student> GetStudentsByLastName(string lastName)
+        {
+            List<Student> students = new List<Student>();
 
-      
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                string query = "SELECT studentID, studentNumber, firstName, lastName, phoneNumber, class, roomID FROM Student WHERE lastName LIKE @LastName";
+
+                using (SqlCommand cmd = new SqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@LastName", "%" + lastName + "%");
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            students.Add(new Student(
+                                reader["studentID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["studentID"]),
+                                reader["studentNumber"] == DBNull.Value ? string.Empty : reader["studentNumber"].ToString(),
+                                reader["firstName"] == DBNull.Value ? string.Empty : reader["firstName"].ToString(),
+                                reader["lastName"] == DBNull.Value ? string.Empty : reader["lastName"].ToString(),
+                                reader["phoneNumber"] == DBNull.Value ? string.Empty : reader["phoneNumber"].ToString(),
+                                reader["class"] == DBNull.Value ? string.Empty : reader["class"].ToString(),
+                                reader["roomID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["roomID"])
+                            ));
+                        }
+                    }
+                }
+            }
+
+            return students;
+        }
 
         public void AddStudent(Student student)
         {
@@ -108,6 +140,16 @@ namespace Someren.Repositories
                     }
                 }
             }
+        }
+
+        public Student? GetStudentByID(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<Student> GetStudentsByRoomID(int roomId)
+        {
+            throw new NotImplementedException();
         }
     }
 }
