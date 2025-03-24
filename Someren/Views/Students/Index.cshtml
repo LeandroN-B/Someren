@@ -17,16 +17,8 @@
     <thead>
         <tr>
             <th>Student ID</th>
-            <th>
-                <a asp-action="Index" asp-route-sortBy="firstName" asp-route-sortOrder="@(ViewBag.CurrentSort == "firstName" && ViewBag.CurrentSortOrder == "asc" ? "desc" : "asc")">
-                    First Name
-                </a>
-            </th>
-            <th>
-                <a asp-action="Index" asp-route-sortBy="lastName" asp-route-sortOrder="@(ViewBag.CurrentSort == "lastName" && ViewBag.CurrentSortOrder == "asc" ? "desc" : "asc")">
-                    Last Name
-                </a>
-            </th>
+            <th>First Name</th>
+            <th>Last Name</th>
             <th>Phone Number</th>
             <th>Class</th>
             <th>Room</th>
@@ -48,6 +40,7 @@
                     <a asp-action="Delete" asp-route-id="@student.StudentID" class="btn btn-danger">Delete</a>
                 </td>
             </tr>
+
         }
     </tbody>
 </table>
