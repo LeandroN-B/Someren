@@ -1,0 +1,61 @@
+﻿@model Someren.Models.Lecturer
+
+@{
+    ViewData["Title"] = "Edit Lecturer";
+    var rooms = ViewBag.AvailableRooms as List<Someren.Models.Room>;
+}
+
+<div class="container mt-4">
+    <div class="card border-primary border-2 rounded-4">
+        <div class="card-header bg-primary text-white">
+            <h2>Edit Lecturer</h2>
+        </div>
+        <div class="card-body">
+            <form asp-action="Edit" method="post">
+                <input type="hidden" asp-for="LecturerID" />
+
+                <div class="mb-3">
+                    <label asp-for="FirstName" class="form-label fw-bold">First Name</label>
+                    <input asp-for="FirstName" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="LastName" class="form-label fw-bold">Last Name</label>
+                    <input asp-for="LastName" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="PhoneNumber" class="form-label fw-bold">Phone Number</label>
+                    <input asp-for="PhoneNumber" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DateOfBirth" class="form-label fw-bold">Date of Birth</label>
+                    <input asp-for="DateOfBirth" type="date" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="RoomID" class="form-label fw-bold">Room (Single Rooms Only)</label>
+                    <select asp-for="RoomID" class="form-select">
+                        <option value="">-- Select Room --</option>
+                        @foreach (var room in rooms)
+                        {
+                            <option value="@room.RoomID" selected="@(Model.RoomID == room.RoomID)">
+                                Room @room.RoomNumber (Floor @room.Floor)
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

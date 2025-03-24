@@ -1,0 +1,66 @@
+﻿@model Someren.Models.Room
+
+@{
+    ViewData["Title"] = "Room Details";
+}
+
+<div class="container mt-5">
+    <div class="card border border-info border-3 rounded-4 shadow-sm">
+        <div class="card-header bg-info text-white rounded-top-4">
+            <h1 class="mb-0"><i class="bi bi-info-circle-fill"></i> Room Details</h1>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="fw-bold">Room Number:</label>
+                    <input type="text" class="form-control" readonly value="@Model.RoomNumber" />
+                </div>
+                <div class="col-md-6">
+                    <label class="fw-bold">Room Type:</label>
+                    <input type="text" class="form-control" readonly value="@Model.RoomType" />
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="fw-bold">Capacity:</label>
+                    <input type="text" class="form-control" readonly value="@Model.Capacity" />
+                </div>
+                <div class="col-md-4">
+                    <label class="fw-bold">Floor:</label>
+                    <input type="text" class="form-control" readonly value="@Model.Floor" />
+                </div>
+                <div class="col-md-4">
+                    <label class="fw-bold">Building:</label>
+                    <input type="text" class="form-control" readonly value="@Model.Building" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="fw-bold">Currently Occupied By:</label>
+
+                @if (Model.RoomType == RoomType.Single && Model.Lecturer != null)
+                {
+                    <input type="text" class="form-control mb-2" readonly value="Lecturer: @Model.Lecturer.FullName" />
+                }
+                else if (Model.RoomType == RoomType.Dormitory && Model.Students != null && Model.Students.Any())
+                {
+                    @foreach (var student in Model.Students)
+                    {
+                        <input type="text" class="form-control mb-2" readonly value="@student.FirstName @student.LastName (@student.StudentNumber)" />
+                    }
+                }
+                else
+                {
+                    <input type="text" class="form-control" readonly value="Unoccupied" />
+                }
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

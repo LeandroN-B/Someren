@@ -1,0 +1,93 @@
+﻿@model Someren.Models.Room
+
+@{
+    ViewData["Title"] = "Add Room";
+
+}
+
+<!-- Page container with margin -->
+<div class="container mt-5">
+    <!-- Card box with green border for the form -->
+    <div class="card border border-success border-3 rounded-4">
+        <!-- Card header: Title section with green background and white text -->
+        <div class="card-header bg-success text-white rounded-top-4">
+            <h1 class="mb-0">Add Room</h1>
+        </div>
+
+        <!-- Card body: Main content where the form lives -->
+        <div class="card-body">
+            <!-- Form to submit new room to the Create action (POST request) -->
+            <form asp-action="Create" method="post">
+                <!-- First row: Room number and type -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <!-- Room number input -->
+                        <label class="fw-bold" asp-for="RoomNumber">Room Number:</label>
+                        <input type="text" asp-for="RoomNumber" class="form-control" required />
+                        <!-- Help text to guide user on format -->
+                        <small class="form-text text-muted">
+                            Example: A0-01 (Building A, Floor 0, Room 01). Format: [Building][Floor]-[RoomNo]
+                        </small>
+                        <!-- Warning if room already exist -->
+                        <span asp-validation-for="RoomNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <!-- Room type dropdown (Dormitory or Single) -->
+                        <label class="fw-bold" asp-for="RoomType">Room Type:</label>
+                        <select asp-for="RoomType" class="form-control" required>
+                            <option value="Dormitory">Dormitory</option>
+                            <option value="Single">Single</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Second row: Capacity of the room -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <!-- Capacity input: number between 1 and 8 -->
+                        <label class="fw-bold" asp-for="Capacity">Capacity:</label>
+                        <input type="number" asp-for="Capacity" class="form-control" min="1" max="8" required />
+                    </div>
+                </div>
+
+                <!-- Third row: Floor and Building selection -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <!-- Dropdown to choose the floor number -->
+                        <label class="fw-bold" asp-for="Floor">Floor:</label>
+                        <select asp-for="Floor" class="form-control">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <!-- Dropdown to choose the building -->
+                        <label class="fw-bold" asp-for="Building">Building:</label>
+                        <select asp-for="Building" class="form-control">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Go Back to Room List
+                    </a>
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-check-lg"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

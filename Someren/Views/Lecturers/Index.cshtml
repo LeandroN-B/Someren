@@ -1,0 +1,62 @@
+﻿@model IEnumerable<Someren.Models.Lecturer>
+
+@{
+	ViewData["Title"] = "Lecturers";
+
+}
+
+<!-- Filter by Last Name -->
+<form method="get" class="mb-4 d-flex align-items-end">
+	<div class="me-2">
+		<label class="form-label fw-bold">Filter by Last Name:</label>
+		<input name="lastName" class="form-control" value="@ViewBag.FilteredLastName" placeholder="Enter last name..." />
+	</div>
+	<button type="submit" class="btn btn-success mt-3">
+		<i class="bi bi-filter"></i> Filter
+	</button>
+</form>
+
+<!-- Title & Add at the right -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+	<h1 class="text-success">@ViewData["Title"]</h1>
+	<a asp-action="Create" class="btn btn-success">
+		<i class="bi bi-plus-circle"></i> Add Lecturer
+	</a>
+</div>
+
+<div class="table-responsive">
+	<table class=" table table-hover table-bordered align-middle">
+		<thead class="table-success">
+			<tr class="text-center">
+				<th>First Name</th>
+				<th>Last Name</th>
+				<th>Phone Number</th>
+				<th>Age</th>
+				<th>Actions</th>
+			
+
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var lecturer in Model.OrderBy(l => l.LastName))
+			{
+				<tr class ="text-center">
+					<td>@lecturer.FirstName</td>
+					<td>@lecturer.LastName</td>
+					<td>@lecturer.PhoneNumber</td>
+					<td>@lecturer.Age</td>
+
+					<!--ACTIONS-->
+					<!-- Buttons to edit or delete the room -->
+					<td>
+						<a asp-action="Edit" asp-route-id="@lecturer.LecturerID" class="btn btn-sm btn-primary">
+							<i class="bi bi-pencil-square"></i> Edit
+						</a>
+						<a asp-action="Delete" asp-route-id="@lecturer.LecturerID" class="btn btn-sm btn-danger">
+							<i class="bi bi-trash"></i> Delete
+						</a>
+				</tr>
+			}
+		</tbody>
+	</table>
+</div>
