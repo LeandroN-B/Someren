@@ -19,57 +19,55 @@ namespace Someren.Controllers
 
         public IActionResult Index(int capacity = 0)
         {
-            // Get all rooms, lecturers, and students
             List<Room> rooms = _roomRepository.GetAllRooms();
             List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers();
             List<Student> students = _studentRepository.GetAllStudents();
 
-            // Go through each room
-            for (int i = 0; i < rooms.Count; i++)
-            {
-                Room room = rooms[i];
+            SetRoomPeople(rooms, lecturers, students);
 
-                // Assign lecturer to room if found
-                foreach (Lecturer lec in lecturers)
-                {
-                    if (lec.RoomID == room.RoomID)
-                    {
-                        room.Lecturer = lec;
-                        break; // Stop looking after we find the match
-                    }
-                }
-
-                // Create empty student list for the room
-                room.Students = new List<Student>();
-
-                // Add students that belong to the room
-                foreach (Student stu in students)
-                {
-                    if (stu.RoomID == room.RoomID)
-                    {
-                        room.Students.Add(stu);
-                    }
-                }
-            }
-
-            // Filter rooms if capacity is selected
             if (capacity > 0)
             {
-                List<Room> filteredRooms = new List<Room>();
-
+                List<Room> filtered = new List<Room>();
                 foreach (Room room in rooms)
-                {
-                    if (room.Capacity == capacity)
-                    {
-                        filteredRooms.Add(room);
-                    }
-                }
-
-                rooms = filteredRooms;
+                    if (room.Capacity == capacity) filtered.Add(room);
+                rooms = filtered;
             }
 
             return View((rooms, capacity));
         }
+
+        // Private because it's being used only inside the controller
+        private void SetRoomPeople(List<Room> rooms, List<Lecturer> lecturers, List<Student> students)
+        {
+            for (int i = 0; i < rooms.Count; i++)
+            {
+                Room room = rooms[i];
+
+                // Assign lecturer
+                foreach (Lecturer lecturer in lecturers)
+                {
+                    if (lecturer.RoomID == room.RoomID)
+                    {
+                        room.Lecturer = lecturer;
+                        break;
+                    }
+                }
+
+                // Assign students
+                room.Students = new List<Student>();
+                foreach (Student student in students)
+                {
+                    if (student.RoomID == room.RoomID)
+                    {
+                        room.Students.Add(student);
+                    }
+                }
+            }
+        }
+
+
+
+
 
 
 
@@ -149,10 +147,9 @@ namespace Someren.Controllers
                 return NotFound();
             }
 
-            // Populate occupancy details
-            if (room.RoomType == RoomType.Single && room.LecturerID.HasValue)
+            if (room.RoomType == RoomType.Single)
             {
-                room.Lecturer = _lecturerRepository.GetLecturerByID(room.LecturerID.Value);
+                room.Lecturer = _lecturerRepository.GetLecturerByRoomID(room.RoomID);
             }
             else if (room.RoomType == RoomType.Dormitory)
             {
@@ -161,7 +158,6 @@ namespace Someren.Controllers
 
             return View(room);
         }
-
 
 
         [HttpPost]
@@ -177,5 +173,35 @@ namespace Someren.Controllers
                 return View(room);
             }
         }
+
+        //
+        [HttpGet]
+        public IActionResult Details(int? id)
+        {
+            if (id is null)
+            {
+                return NotFound();
+            }
+
+            Room? room = _roomRepository.GetRoomByID((int)id);
+
+            if (room == null)
+            {
+                return NotFound();
+            }
+
+            if (room.RoomType == RoomType.Single)
+            {
+                room.Lecturer = _lecturerRepository.GetLecturerByRoomID(room.RoomID);
+            }
+            else if (room.RoomType == RoomType.Dormitory)
+            {
+                room.Students = _studentRepository.GetStudentsByRoomID(room.RoomID);
+            }
+
+            return View(room);
+        }
+
+
     }
 }

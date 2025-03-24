@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Someren.Models;
+﻿using Someren.Models;
 
 namespace Someren.Repositories
 {
