@@ -96,7 +96,6 @@
         <table class="table table-hover table-bordered align-middle">
             <thead class="table-success">
                 <tr class="text-center">
-                    <th>Room ID</th>
                     <th>Room Number</th>
                     <th>Room Type</th>
                     <th>Capacity</th>
@@ -111,8 +110,6 @@
                 @foreach (Room room in Model.Rooms)
                 {
                     <tr class="text-center">
-                        <!-- Display the room's ID -->
-                        <td>@room.RoomID</td>
 
                         <!-- Display the room number -->
                         <td>@room.RoomNumber</td>
@@ -175,6 +172,9 @@
 
                         <!-- Buttons to edit or delete the room -->
                         <td>
+                            <a asp-action="Details" asp-route-id="@room.RoomID" class="btn btn-sm btn-info">
+                                <i class="bi bi-eye"></i> Details
+                            </a>
                             <a asp-action="Edit" asp-route-id="@room.RoomID" class="btn btn-sm btn-primary">
                                 <i class="bi bi-pencil-square"></i> Edit
                             </a>

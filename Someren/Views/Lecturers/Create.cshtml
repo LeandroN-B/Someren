@@ -4,37 +4,47 @@
     ViewData["Title"] = "Add Lecturer";
 }
 
+<!-- Page container with margin -->
 <div class="container mt-5">
+    <!-- Card box with green border for the form -->
     <div class="card border border-success border-3 rounded-4">
+        <!-- Card header: Title section with green background and white text -->
         <div class="card-header bg-success text-white rounded-top-4">
             <h1 class="mb-0">Add Lecturer</h1>
         </div>
+
+        <!-- Card body: Main content where the form lives -->
         <div class="card-body">
+            <!-- Form to submit new lecturer to the Create action (POST request) -->
             <form asp-action="Create" method="post">
+                <!-- First row: First Name and Last Name -->
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="fw-bold" asp-for="FirstName">First Name:</label>
                         <input type="text" asp-for="FirstName" class="form-control" required />
                     </div>
+
                     <div class="col-md-6">
                         <label class="fw-bold" asp-for="LastName">Last Name:</label>
                         <input type="text" asp-for="LastName" class="form-control" required />
                     </div>
                 </div>
 
+                <!-- Second row: Phone Number and Date of Birth -->
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="fw-bold" asp-for="PhoneNumber">Phone Number:</label>
                         <input type="tel" asp-for="PhoneNumber" class="form-control" pattern="^\+?[0-9\s\-]{7,15}$"
                                placeholder="+1234567890" required />
                     </div>
+
                     <div class="col-md-6">
                         <label class="fw-bold" asp-for="DateOfBirth">Date of Birth:</label>
                         <input type="date" asp-for="DateOfBirth" class="form-control" required max="@DateTime.Now.ToString("yyyy-MM-dd")" />
                     </div>
                 </div>
 
-                <!-- RoomID dropdown with proper null check -->
+                <!-- Third row: Room selection dropdown -->
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="fw-bold" asp-for="RoomID">Room:</label>
@@ -64,6 +74,7 @@
                     </div>
                 </div>
 
+                <!-- Submit and back buttons -->
                 <div class="d-flex justify-content-between mt-4">
                     <a asp-action="Index" class="btn btn-secondary">
                         <i class="bi bi-arrow-left"></i> Back to List

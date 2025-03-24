@@ -94,7 +94,8 @@ namespace Someren.Repositories
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "UPDATE Lecturer SET firstName = @FirstName, lastName = @LastName, phoneNumber = @PhoneNumber, dateOfBirth = @DateOfBirth WHERE lecturerID = @LecturerID";
+                string query = @"UPDATE Lecturer SET firstName = @FirstName, lastName = @LastName, phoneNumber = @PhoneNumber, dateOfBirth = @DateOfBirth, roomID = @RoomID WHERE lecturerID = @LecturerID";
+
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@LecturerID", lecturer.LecturerID);
@@ -102,6 +103,7 @@ namespace Someren.Repositories
                     command.Parameters.AddWithValue("@LastName", lecturer.LastName);
                     command.Parameters.AddWithValue("@PhoneNumber", lecturer.PhoneNumber);
                     command.Parameters.AddWithValue("@DateOfBirth", lecturer.DateOfBirth);
+                    command.Parameters.AddWithValue("@RoomID", lecturer.RoomID);
 
                     connection.Open();
                     int affectedRows = command.ExecuteNonQuery();
@@ -112,6 +114,7 @@ namespace Someren.Repositories
                 }
             }
         }
+
 
         public void DeleteLecturer(Lecturer lecturer)
         {

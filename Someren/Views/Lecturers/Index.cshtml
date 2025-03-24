@@ -2,43 +2,53 @@
 
 @{
 	ViewData["Title"] = "Lecturers";
+
 }
 
-<h1>@ViewData["Title"]</h1>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Lecturer ID</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Phone Number</th>
-            <th>Age</th>
-            <th>Actions</th>
-            <th><a asp-action="Create" class="btn btn-success btn-sm">Add a lecturer</a></th>
-            
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var lecturer in Model)
-        {
-            <tr>
-                <td>@lecturer.LecturerID</td>
-                <td>@lecturer.FirstName</td>
-                <td>@lecturer.LastName</td>
-                <td>@lecturer.PhoneNumber</td>
-                <td>@lecturer.Age</td>
-              
-                <!--ACTIONS-->
-                <td>
-                    <a asp-action="Create" class="btn btn-success btn-sm">Add Lecturer</a>
-                    <a asp-action="Edit" asp-route-id="@lecturer.LecturerID" class="btn btn-primary btn-sm">Edit 
-                        Lecturer
-                    </a>
-                    <a asp-action="Delete" asp-route-id="@lecturer.LecturerID" class="btn btn-danger btn-sm"
-                       onclick="return confirm('Are you sure you want to delete this lecturer?');">Delete Lecturer</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<!-- Title & Add at the right -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+	<h1 class="text-success">@ViewData["Title"]</h1>
+	<a asp-action="Create" class="btn btn-success">
+		<i class="bi bi-plus-circle"></i> Add Lecturer
+	</a>
+</div>
+
+<div class="table-responsive">
+	<table class=" table table-hover table-bordered align-middle">
+		<thead>
+			<tr>
+				<th>Lecturer ID</th>
+				<th>First Name</th>
+				<th>Last Name</th>
+				<th>Phone Number</th>
+				<th>Age</th>
+				<th>Actions</th>
+			
+
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var lecturer in Model)
+			{
+				<tr>
+					<td>@lecturer.LecturerID</td>
+					<td>@lecturer.FirstName</td>
+					<td>@lecturer.LastName</td>
+					<td>@lecturer.PhoneNumber</td>
+					<td>@lecturer.Age</td>
+
+					<!--ACTIONS-->
+					<!-- Buttons to edit or delete the room -->
+					<td>
+						<a asp-action="Edit" asp-route-id="@lecturer.LecturerID" class="btn btn-sm btn-primary">
+							<i class="bi bi-pencil-square"></i> Edit
+						</a>
+						<a asp-action="Delete" asp-route-id="@lecturer.LecturerID" class="btn btn-sm btn-danger">
+							<i class="bi bi-trash"></i> Delete
+						</a>
+				</tr>
+			}
+		</tbody>
+	</table>
+</div>
