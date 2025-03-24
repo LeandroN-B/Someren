@@ -28,14 +28,15 @@ namespace Someren.Repositories
                     while (reader.Read())
                     {
                         students.Add(new Student(
-                            Convert.ToInt32(reader["studentID"]),
-                            reader["studentNumber"].ToString() ?? string.Empty,
-                            reader["firstName"].ToString() ?? string.Empty,
-                            reader["lastName"].ToString() ?? string.Empty,
-                            reader["phoneNumber"].ToString() ?? string.Empty,
-                            reader["class"].ToString() ?? string.Empty,
-                            Convert.ToInt32(reader["roomID"])
-                        ));
+                        reader["studentID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["studentID"]),
+                        reader["studentNumber"] == DBNull.Value ? string.Empty : reader["studentNumber"].ToString(),
+                        reader["firstName" ] == DBNull.Value ? string.Empty : reader["firstName"].ToString(),
+                        reader["lastName"] == DBNull.Value ? string.Empty : reader["lastName"].ToString(),
+                        reader["phoneNumber"] == DBNull.Value ? string.Empty : reader["phoneNumber"].ToString(),
+                        reader["class"] == DBNull.Value ? string.Empty : reader["class"].ToString(),
+                        reader["roomID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["roomID"])
+                       ));
+
                     }
                 }
             }
@@ -44,66 +45,7 @@ namespace Someren.Repositories
         }
 
 
-        public Student? GetStudentByID(int id)
-        {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                string query = "SELECT studentID, studentNumber, firstName, lastName, phoneNumber, class, roomID FROM Student WHERE studentID = @StudentID";
-                using (SqlCommand command = new SqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@StudentID", id);
-                    connection.Open();
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            int studentID = Convert.ToInt32(reader["studentID"]);
-                            string studentNumber = reader["studentNumber"].ToString() ?? string.Empty;
-                            string firstName = reader["firstName"].ToString() ?? string.Empty;
-                            string lastName = reader["lastName"].ToString() ?? string.Empty;
-                            string phoneNumber = reader["phoneNumber"].ToString() ?? string.Empty;
-                            string className = reader["class"].ToString() ?? string.Empty;
-                            int roomID = Convert.ToInt32(reader["roomID"]);
-
-                            return new Student(studentID, studentNumber, firstName, lastName, phoneNumber, className, roomID);
-                        }
-                    }
-                }
-            }
-            return null;
-        }
-
-        public List<Student> GetStudentsByRoomID(int roomId)
-        {
-            List<Student> students = new List<Student>();
-
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                string query = "SELECT studentID, studentNumber, firstName, lastName, phoneNumber, class, roomID FROM Student WHERE roomID = @RoomID";
-                using (SqlCommand command = new SqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@RoomID", roomId);
-                    connection.Open();
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            int studentID = Convert.ToInt32(reader["studentID"]);
-                            string studentNumber = reader["studentNumber"].ToString() ?? string.Empty;
-                            string firstName = reader["firstName"].ToString() ?? string.Empty;
-                            string lastName = reader["lastName"].ToString() ?? string.Empty;
-                            string phoneNumber = reader["phoneNumber"].ToString() ?? string.Empty;
-                            string className = reader["class"].ToString() ?? string.Empty;
-                            int roomID = Convert.ToInt32(reader["roomID"]);
-
-                            students.Add(new Student(studentID, studentNumber, firstName, lastName, phoneNumber, className, roomID));
-                        }
-                    }
-                }
-            }
-
-            return students;
-        }
+      
 
         public void AddStudent(Student student)
         {

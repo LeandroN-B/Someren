@@ -2,10 +2,8 @@
 
 <h2>Student List</h2>
 
-<!-- Search & Filter Form -->
+<!-- Sort Form -->
 <form method="get">
-    <input type="text" name="searchString" value="@ViewBag.CurrentFilter" placeholder="Search by name" />
-    <input type="number" name="roomId" value="@ViewBag.RoomID" placeholder="Filter by Room ID" />
     <select name="sortBy">
         <option value="lastName" selected>Sort by Last Name</option>
         <option value="firstName">Sort by First Name</option>
@@ -40,20 +38,8 @@
                     <a asp-action="Delete" asp-route-id="@student.StudentID" class="btn btn-danger">Delete</a>
                 </td>
             </tr>
-
         }
     </tbody>
 </table>
-
-<!-- Pagination -->
-<div>
-    @for (int i = 1; i <= ViewBag.TotalPages; i++)
-    {
-        <a href="?page=@i&searchString=@ViewBag.CurrentFilter&roomId=@ViewBag.RoomID&sortBy=@ViewBag.CurrentSort"
-           class="btn @(i == ViewBag.CurrentPage ? "btn-dark" : "btn-light")">
-            @i
-        </a>
-    }
-</div>
 
 <a asp-action="Create" class="btn btn-success">Add New Student</a>
