@@ -76,7 +76,7 @@ namespace Someren.Controllers
                     return View(lecturer);
                 }
 
-                if (!_lecturerRepository.IsRoomFreeForAddLecturer(lecturer.RoomID))
+                if (lecturer.RoomID.HasValue && !_lecturerRepository.IsRoomFreeForAddLecturer(lecturer.RoomID.Value))
                 {
                     ModelState.AddModelError("", "This room is already assigned to a lecturer.");
                     return View(lecturer);
@@ -161,7 +161,7 @@ namespace Someren.Controllers
             try
             {
                 // Check if the selected room is available
-                if (!_lecturerRepository.IsRoomFreeForEditLecturer(lecturer.LecturerID, lecturer.RoomID))
+                if (lecturer.RoomID.HasValue && !_lecturerRepository.IsRoomFreeForEditLecturer(lecturer.LecturerID, lecturer.RoomID.Value))
                 {
                     ModelState.AddModelError("", "Selected room is not available or invalid.");
 
@@ -215,4 +215,3 @@ namespace Someren.Controllers
         }
     }
 }
-//*

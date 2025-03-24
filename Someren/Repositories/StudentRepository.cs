@@ -35,12 +35,13 @@ namespace Someren.Repositories
                         string className = reader["class"].ToString() ?? string.Empty;
                         int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0;
 
+                        students.Add(new Student(studentID, studentNumber, firstName, lastName, phoneNumber, className, roomID));
                     }
                 }
             }
-
             return students;
         }
+
 
         public Student? GetStudentByID(int id)
         {
