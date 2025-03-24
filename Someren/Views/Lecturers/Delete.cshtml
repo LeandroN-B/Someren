@@ -1,35 +1,73 @@
 ﻿@model Someren.Models.Lecturer
 
 @{
+    // Set the title for the page (appears in the tab and header)
     ViewData["Title"] = "Delete Lecturer";
 }
 
-<h4>Delete Lecturer</h4>
+<!-- Main container with spacing from the top -->
+<div class="container mt-5">
 
-<form asp-action="Delete" method="post">
-    <input type="hidden" asp-for="LecturerID" />
+    <!-- Bootstrap card with shadow effect -->
+    <div class="card shadow-lg">
 
-    <div class="form-group py-2">
-        <label asp-for="FirstName">First Name:</label>
-        <input type="text" asp-for="FirstName" class="form-control" readonly />
+        <!-- Card header in red to show it's a delete action -->
+        <div class="card-header bg-danger text-white rounded-top-5">
+            <h1 class="mb-0">Delete Lecturer</h1>
+        </div>
+
+        <!-- Card body where the form and message are -->
+        <div class="card-body">
+
+            <!-- Warning message to the user -->
+            <p class="text-muted">
+                Are you sure you want to delete this lecturer? This action cannot be undone.
+            </p>
+
+            <!-- Form that submits to the Delete action -->
+            <form asp-action="Delete" method="post">
+
+                <!-- Hidden input to pass LecturerID to the controller -->
+                <input type="hidden" asp-for="LecturerID" />
+
+                <!-- Row to display First Name and Last Name (read-only) -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="FirstName">First Name:</label>
+                        <input type="text" asp-for="FirstName" class="form-control" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="LastName">Last Name:</label>
+                        <input type="text" asp-for="LastName" class="form-control" readonly />
+                    </div>
+                </div>
+
+                <!-- Row to display Phone Number and Date of Birth (read-only) -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="PhoneNumber">Phone Number:</label>
+                        <input type="tel" asp-for="PhoneNumber" class="form-control" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="DateOfBirth">Date of Birth:</label>
+                        <input type="date" asp-for="DateOfBirth" class="form-control" readonly />
+                    </div>
+                </div>
+
+                <!-- Buttons: Back and Delete -->
+                <div class="d-flex justify-content-between mt-4">
+                    <!-- Go back to list of lecturers -->
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Go Back to Lecturer List
+                    </a>
+
+                    <!-- Confirm delete with red button -->
+                    <button type="submit" class="btn btn-danger px-4"
+                            onclick="return confirm('Are you sure you want to delete this lecturer?');">
+                        <i class="bi bi-trash"></i> Delete Lecturer
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-
-    <div class="form-group py-2">
-        <label asp-for="LastName">Last Name:</label>
-        <input type="text" asp-for="LastName" class="form-control" readonly />
-    </div>
-
-    <div class="form-group py-2">
-        <label asp-for="PhoneNumber">Phone Number:</label>
-        <input type="tel" asp-for="PhoneNumber" class="form-control" readonly />
-    </div>
-
-    <div class="form-group py-2">
-        <label asp-for="DateOfBirth">Date of Birth:</label>
-        <input type="date" asp-for="DateOfBirth" class="form-control" />
-    </div>
-   
-    <button type="submit" class="btn btn-danger">Delete</button>
-</form>
-
-<a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>
