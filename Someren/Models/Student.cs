@@ -12,7 +12,7 @@ namespace Someren.Models
         // Public properties with meaningful names
         public int StudentID { get; set; }
 
-        public string StudentNumber { get; }
+        public string StudentNumber { get; set; }
 
         [Required]
         [StringLength(100, ErrorMessage = "First name can't be longer than 100 characters.")]
@@ -27,8 +27,6 @@ namespace Someren.Models
         [StringLength(15, ErrorMessage = "Phone number can't be longer than 15 characters.")]
         public string PhoneNumber { get; set; }
 
-        [Required]
-        public DateTime DateOfBirth { get; set; }
         public int? RoomID { get; set; }
 
         public string FullName => $"{FirstName} {LastName}";
@@ -45,6 +43,8 @@ namespace Someren.Models
             get => _telephone;
             set => _telephone = value;
         }
+
+        public Student() { }
 
         // Constructor to initialize required fields
         public Student(int studentID, string studentNumber, string firstName, string lastName, string phoneNumber, string className, int roomID, string? telephone = null)

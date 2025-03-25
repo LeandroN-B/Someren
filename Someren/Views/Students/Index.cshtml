@@ -27,14 +27,10 @@
     <tbody>
         @foreach (var student in Model)
         {
-            var age = DateTime.Now.Year - student.DateOfBirth.Year;
-            if (student.DateOfBirth.Date > DateTime.Now.AddYears(-age)) age--;
-
             <tr>
                 <td>@student.StudentID</td>
                 <td>@student.FirstName</td>
                 <td>@student.LastName</td>
-                <td>@age</td>
                 <td>@student.PhoneNumber</td>
                 <td>@student.ClassName</td>
                 <td>@student.RoomID</td>

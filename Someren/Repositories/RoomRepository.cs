@@ -207,9 +207,9 @@ namespace Someren.Repositories
                 foreach (Room room in rooms)
                 {
                     // Fetch lecturer
-                    string queryLecturer = "SELECT LecturerID, FirstName AS LecturerFirstName, LastName AS LecturerLastName, PhoneNumber AS LecturerPhone, DateOfBirth, LecInDate, LecOutDate" +
-                                           "FROM Lecturer " +
-                                           "WHERE RoomID = @RoomID";
+                    string queryLecturer = "SELECT lecturerID, firstName AS LecturerFirstName, lastName AS LecturerLastName, phoneNumber AS LecturerPhone, dateOfBirth, lecInDate, lecOutDate " +
+                       "FROM Lecturer " +
+                       "WHERE roomID = @RoomID";
 
                     using (SqlCommand cmdLecturer = new SqlCommand(queryLecturer, connection))
                     {
@@ -296,7 +296,7 @@ namespace Someren.Repositories
         // Method for reading lecturer data from SqlDataReader
         private Lecturer ReadLecturer(SqlDataReader reader, int roomId)
         {
-            
+
             return new Lecturer
             {
                 LecturerID = reader.GetInt32(reader.GetOrdinal("LecturerID")),
