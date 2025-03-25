@@ -11,8 +11,8 @@ namespace Someren.Models
         public string PhoneNumber { get; set; } = string.Empty;
         public int? RoomID { get; set; }
         public DateTime DateOfBirth { get; set; }
-        public DateTime CheckInDate { get; set; } = DateTime.Now;
-        public DateTime CheckOutDate { get; set; } = DateTime.Now.AddDays(7);
+        public DateTime? LecInDate { get; set; } = DateTime.Now;
+        public DateTime? LecOutDate { get; set; } = DateTime.Now.AddDays(7);
 
         public string FullName => $"{FirstName} {LastName}";
 

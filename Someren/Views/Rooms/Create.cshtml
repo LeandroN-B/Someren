@@ -47,7 +47,8 @@
                     <div class="col-md-6">
                         <!-- Capacity input: number between 1 and 8 -->
                         <label class="fw-bold" asp-for="Capacity">Capacity:</label>
-                        <input type="number" asp-for="Capacity" class="form-control" min="1" max="8" required />
+                        <input type="number" asp-for="Capacity" id="capacityInput" class="form-control" readonly />
+
                     </div>
                 </div>
 
@@ -87,7 +88,21 @@
 
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <script>
+        const roomTypeSelect = document.querySelector('[name="RoomType"]');
+        const capacityInput = document.getElementById('capacityInput');
+
+        function updateCapacity() {
+            const selected = roomTypeSelect.value;
+            capacityInput.value = selected === 'Single' ? 1 : 8;
+        }
+
+        roomTypeSelect.addEventListener('change', updateCapacity);
+
+        // Trigger on page load
+        updateCapacity();
+    </script>
+
+    @await Html.PartialAsync("_ValidationScriptsPartial")
 }
+
