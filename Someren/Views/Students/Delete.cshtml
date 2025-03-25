@@ -1,17 +1,70 @@
 ﻿@model Someren.Models.Student
 
-<h2>Delete Student</h2>
+@{
+    ViewData["Title"] = "Delete Student";
+}
 
-<p>Are you sure you want to delete this student?</p>
-<ul>
-    <li><strong>First Name:</strong> @Model.FirstName</li>
-    <li><strong>Last Name:</strong> @Model.LastName</li>
-    <li><strong>PhoneNumber:</strong> @Model.PhoneNumber</li>
-    <li><strong>Class:</strong> @Model.ClassName</li>
-</ul>
+<!-- Main container with spacing -->
+<div class="container mt-5">
 
-<form asp-action="Delete" method="post">
-    <input type="hidden" asp-for="StudentID" />
-    <button type="submit" class="btn btn-danger">Delete</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-</form>
+    <!-- Card for delete confirmation -->
+    <div class="card shadow-lg">
+
+        <!-- Header with red background -->
+        <div class="card-header bg-danger text-white rounded-top-5">
+            <h1 class="mb-0">Delete Student</h1>
+        </div>
+
+        <div class="card-body">
+            <p class="text-muted">
+                Are you sure you want to delete this student? This action cannot be undone.
+            </p>
+
+            <form asp-action="Delete" method="post">
+
+                <input type="hidden" asp-for="StudentID" />
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="StudentNumber">Student Number:</label>
+                        <input type="text" asp-for="StudentNumber" class="form-control" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="ClassName">Class:</label>
+                        <input type="text" asp-for="ClassName" class="form-control" readonly />
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="FirstName">First Name:</label>
+                        <input type="text" asp-for="FirstName" class="form-control" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="LastName">Last Name:</label>
+                        <input type="text" asp-for="LastName" class="form-control" readonly />
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="PhoneNumber">Phone Number:</label>
+                        <input type="text" asp-for="PhoneNumber" class="form-control" readonly />
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Student List
+                    </a>
+
+                    <button type="submit" class="btn btn-danger px-4"
+                            onclick="return confirm('Are you sure you want to delete this student?');">
+                        <i class="bi bi-trash"></i> Delete Student
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
