@@ -1,6 +1,7 @@
-﻿using Someren.Models;
+﻿using System.Collections.Generic;
+using Someren.Models;
 
-public interface IStudentRepository
+namespace Someren.Repositories
 {
     public interface IStudentRepository
     {
