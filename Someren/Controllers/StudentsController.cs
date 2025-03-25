@@ -3,147 +3,222 @@ using Someren.Models;
 using Someren.Repositories;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Someren.Controllers
 {
     public class StudentsController : Controller
     {
         private readonly IStudentRepository _studentRepository;
+        private readonly IRoomRepository _roomRepository;
 
-        public StudentsController(IStudentRepository studentRepository)
+        public StudentsController(IStudentRepository studentRepository, IRoomRepository roomRepository)
         {
-            _studentRepository = studentRepository ?? throw new ArgumentNullException(nameof(studentRepository));
+            _studentRepository = studentRepository;
+            _roomRepository = roomRepository;
         }
 
-        // Index action to display all students or filter by last name
-        public IActionResult Index(string lastName, string sortBy)
+        public IActionResult Index(string? lastName)
         {
+            ViewBag.FilteredLastName = lastName;
+
             List<Student> students;
 
-            try
+            if (!string.IsNullOrEmpty(lastName))
             {
-                // Retrieve all students
-                students = _studentRepository.GetAllStudents();
-
-                // Filter by last name if provided
-                if (!string.IsNullOrEmpty(lastName))
-                {
-                    students = students.FindAll(s => s.LastName.Contains(lastName, StringComparison.OrdinalIgnoreCase));
-                }
-
-                // Sort students based on selected option (Last Name by default)
-                if (sortBy == "firstName")
-                {
-                    students = students.OrderBy(s => s.FirstName).ToList();
-                }
-                else
-                {
-                    students = students.OrderBy(s => s.LastName).ToList();
-                }
-
-                return View(students);
+                students = _studentRepository.GetStudentsByLastName(lastName)
+                                             .OrderBy(s => s.LastName)
+                                             .ToList();
             }
-            catch (Exception ex)
+            else
             {
-                // Handle errors and provide feedback
-                TempData["Error"] = $"Error retrieving students: {ex.Message}";
-                return View(new List<Student>());
+                students = _studentRepository.GetAllStudents()
+                                             .OrderBy(s => s.LastName)
+                                             .ToList();
             }
+
+            return View(students);
         }
 
-        // Edit Student
-        public IActionResult Edit(int id)
-        {
-            var student = _studentRepository.GetStudentByID(id);
-            if (student == null)
-            {
-                return NotFound();
-            }
-
-            return View(student);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(Student student)
-        {
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _studentRepository.UpdateStudent(student);
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (Exception ex)
-                {
-                    TempData["Error"] = $"Error updating student: {ex.Message}";
-                }
-            }
-
-            return View(student);
-        }
-
-        // Delete Student
-        public IActionResult Delete(int id)
-        {
-            var student = _studentRepository.GetStudentByID(id);
-            if (student == null)
-            {
-                return NotFound();
-            }
-
-            return View(student);
-        }
-
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
-        {
-            try
-            {
-                var student = _studentRepository.GetStudentByID(id);
-                if (student != null)
-                {
-                    _studentRepository.DeleteStudent(student);
-                }
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error deleting student: {ex.Message}";
-                return RedirectToAction(nameof(Index));
-            }
-        }
-
-        // Show the Create Student form
+        [HttpGet]
         public IActionResult Create()
         {
+            List<Room> rooms = _roomRepository.GetAllRooms();
+            List<Room> availableDorms = new List<Room>();
+
+            foreach (Room room in rooms)
+            {
+                if (room.RoomType == RoomType.Dormitory)
+                {
+                    var studentsInRoom = _studentRepository.GetStudentsByRoomID(room.RoomID);
+                    if (studentsInRoom.Count < room.Capacity)
+                    {
+                        availableDorms.Add(room);
+                    }
+                }
+            }
+
+            ViewData["Rooms"] = availableDorms;
             return View();
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public IActionResult Create(Student student)
         {
-            if (ModelState.IsValid)
+            try
             {
-                try
+                if (student.RoomID == null || student.RoomID == 0)
                 {
-                    // No automatic generation here anymore
-                    _studentRepository.AddStudent(student);
-                    return RedirectToAction(nameof(Index));
+                    ModelState.AddModelError("", "Please select a room.");
+                    ViewData["Rooms"] = GetAvailableDorms();
+                    return View(student);
                 }
-                catch (Exception ex)
+
+                if (!CanAddStudentToRoom(student.RoomID.Value))
                 {
-                    TempData["Error"] = $"Error adding student: {ex.Message}";
+                    ModelState.AddModelError("", "Selected room is already full.");
+                    ViewData["Rooms"] = GetAvailableDorms();
+                    return View(student);
+                }
+
+                _studentRepository.AddStudent(student);
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Error: {ex.Message}");
+                ViewData["Rooms"] = GetAvailableDorms();
+                return View(student);
+            }
+        }
+
+        [HttpGet]
+        public IActionResult Edit(int? id)
+        {
+            if (id == null) return NotFound();
+
+            Student? student = _studentRepository.GetStudentByID((int)id);
+            if (student == null) return NotFound();
+
+            List<Room> allRooms = _roomRepository.GetAllRooms();
+            List<Room> availableRooms = new List<Room>();
+
+            foreach (Room room in allRooms)
+            {
+                if (room.RoomType != RoomType.Dormitory) continue;
+
+                var studentsInRoom = _studentRepository.GetStudentsByRoomID(room.RoomID);
+                bool isCurrentRoom = room.RoomID == student.RoomID;
+                bool hasSpace = studentsInRoom.Count < room.Capacity;
+
+                if (hasSpace || isCurrentRoom)
+                {
+                    availableRooms.Add(room);
                 }
             }
+
+            ViewBag.AvailableRooms = availableRooms;
+            return View(student);
+        }
+
+        [HttpPost]
+        public IActionResult Edit(Student student)
+        {
+            try
+            {
+                if (student.RoomID == null || student.RoomID == 0)
+                {
+                    ModelState.AddModelError("", "Please select a room.");
+                    ViewBag.AvailableRooms = GetAvailableDormsForEdit(student);
+                    return View(student);
+                }
+
+                if (!CanAssignRoomToStudent(student.StudentID, student.RoomID.Value))
+                {
+                    ModelState.AddModelError("", "Selected room is already full.");
+                    ViewBag.AvailableRooms = GetAvailableDormsForEdit(student);
+                    return View(student);
+                }
+
+                _studentRepository.UpdateStudent(student);
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Error: {ex.Message}");
+                ViewBag.AvailableRooms = GetAvailableDormsForEdit(student);
+                return View(student);
+            }
+        }
+
+        [HttpGet]
+        public IActionResult Delete(int? id)
+        {
+            if (id == null) return NotFound();
+
+            Student? student = _studentRepository.GetStudentByID((int)id);
+            if (student == null) return NotFound();
 
             return View(student);
         }
 
+        [HttpPost]
+        public IActionResult Delete(Student student)
+        {
+            try
+            {
+                _studentRepository.DeleteStudent(student);
+                return RedirectToAction("Index");
+            }
+            catch (Exception)
+            {
+                return View(student);
+            }
+        }
 
+        // === Helpers ===
 
+        private bool CanAddStudentToRoom(int roomId)
+        {
+            var room = _roomRepository.GetRoomByID(roomId);
+            if (room == null || room.RoomType != RoomType.Dormitory)
+                return false;
+
+            var students = _studentRepository.GetStudentsByRoomID(roomId);
+            return students.Count < room.Capacity;
+        }
+
+        private bool CanAssignRoomToStudent(int studentId, int roomId)
+        {
+            var room = _roomRepository.GetRoomByID(roomId);
+            if (room == null || room.RoomType != RoomType.Dormitory)
+                return false;
+
+            var students = _studentRepository.GetStudentsByRoomID(roomId);
+            return students.Count < room.Capacity || students.Any(s => s.StudentID == studentId);
+        }
+
+        private List<Room> GetAvailableDorms()
+        {
+            return _roomRepository.GetAllRooms()
+                .Where(r => r.RoomType == RoomType.Dormitory &&
+                            _studentRepository.GetStudentsByRoomID(r.RoomID).Count < r.Capacity)
+                .ToList();
+        }
+
+        private List<Room> GetAvailableDormsForEdit(Student student)
+        {
+            var rooms = GetAvailableDorms();
+            var currentRoom = _roomRepository.GetRoomByID(student.RoomID ?? 0);
+            if (currentRoom != null && currentRoom.RoomType == RoomType.Dormitory)
+            {
+                if (!rooms.Any(r => r.RoomID == currentRoom.RoomID))
+                {
+                    rooms.Add(currentRoom);
+                }
+            }
+
+            return rooms.OrderBy(r => r.RoomNumber).ToList();
+        }
     }
 }
