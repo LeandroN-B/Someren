@@ -33,14 +33,14 @@
 				<th>Phone Number</th>
 				<th>Age</th>
 				<th>Actions</th>
-			
+
 
 			</tr>
 		</thead>
 		<tbody>
 			@foreach (var lecturer in Model.OrderBy(l => l.LastName))
 			{
-				<tr class ="text-center">
+				<tr class="text-center">
 					<td>@lecturer.FirstName</td>
 					<td>@lecturer.LastName</td>
 					<td>@lecturer.PhoneNumber</td>

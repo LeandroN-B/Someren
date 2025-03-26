@@ -1,49 +1,60 @@
-﻿@model List<Someren.Models.Student>
+﻿@model IEnumerable<Someren.Models.Student>
 
 @{
     ViewData["Title"] = "Students";
 }
 
-<div class="container mt-4">
-    <!-- Header + Add button -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="text-primary">@ViewData["Title"]</h1>
-        <a asp-action="Create" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Add Student
-        </a>
+<!-- Filter by Last Name -->
+<form method="get" class="mb-4 d-flex align-items-end">
+    <div class="me-2">
+        <label class="form-label fw-bold">Filter by Last Name:</label>
+        <input name="lastName" class="form-control" value="@ViewBag.FilteredLastName" placeholder="Enter last name..." />
     </div>
+    <button type="submit" class="btn btn-success mt-3">
+        <i class="bi bi-filter"></i> Filter
+    </button>
+</form>
 
-    <!-- Student Table -->
-    <div class="table-responsive">
-        <table class="table table-hover table-bordered align-middle">
-            <thead class="table-primary text-center table-success">
-                <tr>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Phone Number</th>
-                    <th>Class</th>
-                    <th>Actions</th>
+<!-- Title & Add Button -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="text-success">@ViewData["Title"]</h1>
+    <a asp-action="Create" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Add Student
+    </a>
+</div>
+
+<!-- Student Table -->
+<div class="table-responsive">
+    <table class="table table-hover table-bordered align-middle">
+        <thead class="table-success text-center">
+            <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Phone Number</th>
+                <th>Class</th>
+                <th>Room</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var student in Model.OrderBy(s => s.LastName))
+            {
+                <tr class="text-center">
+                    <td>@student.FirstName</td>
+                    <td>@student.LastName</td>
+                    <td>@student.PhoneNumber</td>
+                    <td>@student.ClassName</td>
+                    <td>@student.RoomID</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@student.StudentID" class="btn btn-sm btn-primary">
+                            <i class="bi bi-pencil-square"></i> Edit
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@student.StudentID" class="btn btn-sm btn-danger">
+                            <i class="bi bi-trash"></i> Delete
+                        </a>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                @foreach (var student in Model)
-                {
-                    <tr class="text-center">
-                        <td>@student.FirstName</td>
-                        <td>@student.LastName</td>
-                        <td>@student.PhoneNumber</td>
-                        <td>@student.ClassName</td>   
-                        <td>
-                            <a asp-action="Edit" asp-route-id="@student.StudentID" class="btn btn-sm btn-primary">
-                                <i class="bi bi-pencil-square"></i> Edit
-                            </a>
-                            <a asp-action="Delete" asp-route-id="@student.StudentID" class="btn btn-sm btn-danger">
-                                <i class="bi bi-trash"></i> Delete
-                            </a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+            }
+        </tbody>
+    </table>
 </div>
