@@ -10,6 +10,8 @@ namespace Someren.Repositories
         // Retrieve all rooms including lecturers and students, optionally filtered by capacity
         List<Room> GetRoomsWithPeople(int capacity = 0);
 
+        List<Room> GetAvailableSingleRooms(int? excludeRoomId = null);
+
         // Retrieve a specific room by ID
         Room? GetRoomByID(int id);
 

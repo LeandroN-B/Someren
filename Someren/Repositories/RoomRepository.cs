@@ -54,6 +54,45 @@ namespace Someren.Repositories
             }
         }
 
+        public List<Room> GetAvailableSingleRooms(int? excludeRoomId = null)
+        {
+            List<Room> availableRooms = new List<Room>();
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                string query = @"
+            SELECT r.RoomID, r.RoomNumber, r.RoomType, r.Capacity, r.Floor, r.Building
+            FROM Room r
+            WHERE r.RoomType = @RoomType
+              AND (
+                    NOT EXISTS (
+                        SELECT 1 FROM Lecturer l
+                        WHERE l.RoomID = r.RoomID
+                    )
+                    OR r.RoomID = @ExcludeRoomID
+              )";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@RoomType", RoomType.Single.ToString());
+                    command.Parameters.AddWithValue("@ExcludeRoomID", excludeRoomId.HasValue ? excludeRoomId.Value : DBNull.Value);
+
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            availableRooms.Add(ReadSingleRoom(reader));
+                        }
+                    }
+                }
+            }
+
+            return availableRooms;
+        }
+
+
         // Method to load the lecturer or students into a single room object
         public void LoadOccupantsForRoom(Room room)
         {
