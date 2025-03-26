@@ -154,14 +154,36 @@ namespace Someren.Controllers
             Room? room = _roomRepository.GetRoomByID((int)id);
             if (room == null) return NotFound();
 
-            // Load current person data
+            List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers();
+            List<Student> students = _studentRepository.GetAllStudents();
+
             if (room.RoomType == RoomType.Single)
-                room.Lecturer = _lecturerRepository.GetLecturerByRoomID(room.RoomID);
+            {
+                foreach (Lecturer lecturer in lecturers)
+                {
+                    if (lecturer.RoomID == room.RoomID)
+                    {
+                        room.Lecturer = lecturer;
+                        break;
+                    }
+                }
+            }
             else if (room.RoomType == RoomType.Dormitory)
-                room.Students = _studentRepository.GetStudentsByRoomID(room.RoomID);
+            {
+                room.Students = new List<Student>();
+
+                foreach (Student student in students)
+                {
+                    if (student.RoomID == room.RoomID)
+                    {
+                        room.Students.Add(student);
+                    }
+                }
+            }
 
             return View(room);
         }
+             
 
         // Saves the updated room data
         [HttpPost]
@@ -180,6 +202,7 @@ namespace Someren.Controllers
 
         // Shows room details (read-only)
         [HttpGet]
+        [HttpGet]
         public IActionResult Details(int? id)
         {
             if (id is null) return NotFound();
@@ -187,13 +210,35 @@ namespace Someren.Controllers
             Room? room = _roomRepository.GetRoomByID((int)id);
             if (room == null) return NotFound();
 
-            // Attach occupant info for display
+            List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers();
+            List<Student> students = _studentRepository.GetAllStudents();
+
             if (room.RoomType == RoomType.Single)
-                room.Lecturer = _lecturerRepository.GetLecturerByRoomID(room.RoomID);
+            {
+                foreach (Lecturer lecturer in lecturers)
+                {
+                    if (lecturer.RoomID == room.RoomID)
+                    {
+                        room.Lecturer = lecturer;
+                        break;
+                    }
+                }
+            }
             else if (room.RoomType == RoomType.Dormitory)
-                room.Students = _studentRepository.GetStudentsByRoomID(room.RoomID);
+            {
+                room.Students = new List<Student>();
+
+                foreach (Student student in students)
+                {
+                    if (student.RoomID == room.RoomID)
+                    {
+                        room.Students.Add(student);
+                    }
+                }
+            }
 
             return View(room);
         }
+
     }
 }
