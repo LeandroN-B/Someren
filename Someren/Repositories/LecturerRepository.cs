@@ -14,17 +14,20 @@ namespace Someren.Repositories
                 ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public List<Lecturer> GetAllLecturers()
+        public List<Lecturer> GetAllLecturers(string lastName = "")
         {
             List<Lecturer> lecturers = new List<Lecturer>();
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                string query = "SELECT lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID FROM Lecturer";
+                string query = "SELECT lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID " +
+                               "FROM Lecturer WHERE lastName LIKE @LastName ORDER BY lastName";
                 using (SqlCommand cmd = new SqlCommand(query, connection))
+                {
                     try
                     {
+                        cmd.Parameters.AddWithValue("@LastName", "%" + lastName + "%");
 
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
@@ -32,13 +35,12 @@ namespace Someren.Repositories
                             {
                                 int lecturerID = Convert.ToInt32(reader["lecturerID"]);
                                 string firstName = reader["firstName"]?.ToString() ?? string.Empty;
-                                string lastName = reader["lastName"]?.ToString() ?? string.Empty;
+                                string lastNameValue = reader["lastName"]?.ToString() ?? string.Empty;
                                 string phoneNumber = reader["phoneNumber"]?.ToString() ?? string.Empty;
                                 DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
                                 int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0;
 
-                                var lecturer = new Lecturer(lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID);
-                                lecturers.Add(lecturer);
+                                lecturers.Add(new Lecturer(lecturerID, firstName, lastNameValue, phoneNumber, dateOfBirth, roomID));
                             }
                         }
                     }
@@ -50,38 +52,20 @@ namespace Someren.Repositories
                     {
                         throw new Exception("Something went wrong reading data", ex);
                     }
-                //end method refactoring
+                    //end method refactoring
+                }
+                return lecturers;
             }
-            return lecturers;
         }
-
         public Lecturer? GetLecturerByID(int id)
         {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            string query = "SELECT lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID FROM Lecturer WHERE lecturerID = @LecturerID";
+            SqlParameter[] sqlParameters =
             {
-                string query = "SELECT lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID FROM Lecturer WHERE lecturerID = @LecturerID";
-                using (SqlCommand command = new SqlCommand(query, connection))
-                {
+                new SqlParameter("@LecturerID", SqlDbType.Int) { Value = id }
+        };
 
-                    command.Parameters.AddWithValue("@LecturerID", id);
-                    connection.Open();
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            int lecturerID = Convert.ToInt32(reader["lecturerID"]);
-                            string firstName = reader["firstName"].ToString() ?? string.Empty;
-                            string lastName = reader["lastName"].ToString() ?? string.Empty;
-                            string phoneNumber = reader["phoneNumber"].ToString() ?? string.Empty;
-                            DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
-                            int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0;
-
-                            return new Lecturer(lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID);
-                        }
-                    }
-                }
-            }
-            return null;
+            return ExecuteQueryMapLecturer(query, sqlParameters);
         }
 
         public void AddLecturer(Lecturer lecturer)
@@ -90,6 +74,7 @@ namespace Someren.Repositories
             {
                 string query = "INSERT INTO Lecturer (firstName, lastName, phoneNumber, dateOfBirth, roomID) " +
                                "VALUES (@FirstName, @LastName, @PhoneNumber, @DateOfBirth, @RoomID)";
+
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@FirstName", lecturer.FirstName);
@@ -98,12 +83,27 @@ namespace Someren.Repositories
                     command.Parameters.AddWithValue("@DateOfBirth", lecturer.DateOfBirth);
                     command.Parameters.AddWithValue("@RoomID", lecturer.RoomID);
 
-                    connection.Open();
-                    command.ExecuteNonQuery();
+                    try
+                    {
+                        connection.Open();
+                        int affectedRows = command.ExecuteNonQuery();
+
+                        if (affectedRows != 1)
+                        {
+                            throw new Exception("Adding lecturer failed — no row was inserted.");
+                        }
+                    }
+                    catch (SqlException ex)
+                    {
+                        throw new Exception("A database error occurred while adding the lecturer.", ex);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("Something went wrong while adding the lecturer.", ex);
+                    }
                 }
             }
         }
-
         public void UpdateLecturer(Lecturer lecturer)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -142,8 +142,10 @@ namespace Someren.Repositories
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@LecturerID", lecturer.LecturerID);
+
                     connection.Open();
                     int affectedRows = command.ExecuteNonQuery();
+
                     if (affectedRows == 0)
                     {
                         throw new Exception("No records deleted!");
@@ -151,92 +153,41 @@ namespace Someren.Repositories
                 }
             }
         }
-
-        public List<Lecturer> GetLecturersByLastName(string lastName)
-        {
-            List<Lecturer> lecturers = new List<Lecturer>();
-
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                connection.Open();
-                string query = "SELECT lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID FROM Lecturer WHERE lastName LIKE @LastName";
-                using (SqlCommand cmd = new SqlCommand(query, connection))
-                {
-                    cmd.Parameters.AddWithValue("@LastName", "%" + lastName + "%");
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            int lecturerID = Convert.ToInt32(reader["lecturerID"]);
-                            string firstName = reader["firstName"]?.ToString() ?? string.Empty;
-                            string lastNameValue = reader["lastName"]?.ToString() ?? string.Empty;
-                            string phoneNumber = reader["phoneNumber"]?.ToString() ?? string.Empty;
-                            DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
-                            int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0; // // roomID can be NULL in the database if the lecturer is not assigned a room yet.
-
-
-                            lecturers.Add(new Lecturer(lecturerID, firstName, lastNameValue, phoneNumber, dateOfBirth, roomID));
-                        }
-                    }
-                }
-            }
-
-            return lecturers;
-        }
-
-        public Lecturer? GetLecturerByRoomID(int roomID)
+        private Lecturer? ExecuteQueryMapLecturer(string query, SqlParameter[] sqlParameters)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "SELECT LecturerID, FirstName, LastName, PhoneNumber, DateOfBirth, RoomID FROM Lecturer WHERE RoomID = @RoomID";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
-                    command.Parameters.AddWithValue("@RoomID", roomID);
-                    connection.Open();
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    command.Parameters.AddRange(sqlParameters);
+
+                    try
                     {
-                        if (reader.Read())
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
                         {
-                            return new Lecturer(
-                                Convert.ToInt32(reader["LecturerID"]),
-                                reader["FirstName"].ToString() ?? string.Empty,
-                                reader["LastName"].ToString() ?? string.Empty,
-                                reader["PhoneNumber"].ToString() ?? string.Empty,
-                                Convert.ToDateTime(reader["DateOfBirth"]),
-                                Convert.ToInt32(reader["RoomID"])
-                            );
+                            if (reader.Read())
+                            {
+                                return new Lecturer(
+                                    Convert.ToInt32(reader["lecturerID"]),
+                                    reader["firstName"]?.ToString() ?? string.Empty,
+                                    reader["lastName"]?.ToString() ?? string.Empty,
+                                    reader["phoneNumber"]?.ToString() ?? string.Empty,
+                                    Convert.ToDateTime(reader["dateOfBirth"]),
+                                    reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0
+                                );
+                            }
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("Error while mapping lecturer", ex);
+                    }
+
+                    return null;
                 }
             }
-            return null;
-        }
-        public bool IsRoomFreeForAddLecturer(int roomId)
-        {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                string query = "SELECT COUNT(*) FROM Lecturer WHERE RoomID = @RoomID";
-                using (SqlCommand command = new SqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@RoomID", roomId);
-                    connection.Open();
-                    int count = (int)command.ExecuteScalar();
-                    return count == 0;
-                }
-            }
-        }
-        public bool IsRoomFreeForEditLecturer(int lecturerId, int newRoomId)
-        {
-            Lecturer? existingLecturer = GetLecturerByID(lecturerId);
-            if (existingLecturer == null)
-                return false;
 
-            // check if it's already assigned to the room
-            Lecturer? otherLecturer = GetLecturerByRoomID(newRoomId);
-
-            // if there is a free room or if is going to be at the same room
-            return otherLecturer == null || otherLecturer.LecturerID == lecturerId;
         }
-
     }
 }

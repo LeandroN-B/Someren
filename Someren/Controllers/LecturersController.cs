@@ -19,22 +19,10 @@ namespace Someren.Controllers
         {
             ViewBag.FilteredLastName = lastName;
 
-            List<Lecturer> lecturers;
+            // Ensure lastName is not null when calling the repository
+            string safeLastName = lastName ?? "";
 
-            if (!string.IsNullOrEmpty(lastName))
-            {
-                // Filtered list (and sorted by last name)
-                lecturers = _lecturerRepository.GetLecturersByLastName(lastName)
-                                               .OrderBy(l => l.LastName)
-                                               .ToList();
-            }
-            else
-            {
-                // Full list sorted by last name
-                lecturers = _lecturerRepository.GetAllLecturers()
-                                               .OrderBy(l => l.LastName)
-                                               .ToList();
-            }
+            List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers(lastName);
 
             return View(lecturers);
         }
@@ -44,23 +32,8 @@ namespace Someren.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            // Get all rooms from the database
-            List<Room> rooms = _roomRepository.GetAllRooms();
-
-            // Filter only available single rooms
-            List<Room> availableRooms = new List<Room>();
-
-            foreach (Room room in rooms)
-            {
-                if (room.RoomType == RoomType.Single && _lecturerRepository.IsRoomFreeForAddLecturer(room.RoomID))
-                {
-                    availableRooms.Add(room);
-                }
-            }
-
-            // Pass the available rooms to the view
+            var availableRooms = _roomRepository.GetAvailableSingleRooms(); // only free single rooms
             ViewData["Rooms"] = availableRooms;
-
             return View();
         }
 
@@ -69,30 +42,28 @@ namespace Someren.Controllers
         {
             try
             {
-                // Check if a room is selected
-                if (lecturer.RoomID == 0 || lecturer.RoomID == null)
+                // Check if RoomID is null or 0 (invalid)
+                if (lecturer.RoomID == null || lecturer.RoomID == 0)
                 {
                     ModelState.AddModelError("", "Please select a room.");
-                    return View(lecturer);
+                    // fall through to view return at the end
                 }
-
-                if (lecturer.RoomID.HasValue && !_lecturerRepository.IsRoomFreeForAddLecturer(lecturer.RoomID.Value))
+                else
                 {
-                    ModelState.AddModelError("", "This room is already assigned to a lecturer.");
-                    return View(lecturer);
+                    _lecturerRepository.AddLecturer(lecturer);
+                    return RedirectToAction("Index");
                 }
-
-                // Save the lecturer
-                _lecturerRepository.AddLecturer(lecturer);
-                return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("", $"Error: {ex.Message}");
-                return View(lecturer);
             }
-        }
 
+            // If validation failed or an exception happened, repopulate rooms and return the view
+            ViewData["Rooms"] = _roomRepository.GetAvailableSingleRooms();
+            return View(lecturer);
+        }
+        
         [HttpGet]
         public IActionResult Delete(int? id)
         {
@@ -125,7 +96,6 @@ namespace Someren.Controllers
 
         [HttpGet]
         public IActionResult Edit(int? id)
-
         {
             if (id == null)
                 return NotFound();
@@ -134,58 +104,16 @@ namespace Someren.Controllers
             if (lecturer == null)
                 return NotFound();
 
-            // A list of available rooms but only Single type and unoccupied or current room)
-            List<Room> allRooms = _roomRepository.GetAllRooms();
-            List<Room> availableRooms = new List<Room>();
-
-            foreach (Room room in allRooms)
-            {
-                bool isSingleRoom = room.RoomType == RoomType.Single;
-                bool isUnoccupied = _lecturerRepository.GetLecturerByRoomID(room.RoomID) == null;
-                bool isCurrentRoom = room.RoomID == lecturer.RoomID;
-
-                if (isSingleRoom && (isUnoccupied || isCurrentRoom))
-                {
-                    availableRooms.Add(room);
-                }
-            }
-
+            var availableRooms = _roomRepository.GetAvailableSingleRooms(lecturer.RoomID); // also include the current room
             ViewBag.AvailableRooms = availableRooms;
 
             return View(lecturer);
         }
-
         [HttpPost]
         public IActionResult Edit(Lecturer lecturer)
         {
             try
             {
-                // Check if the selected room is available
-                if (lecturer.RoomID.HasValue && !_lecturerRepository.IsRoomFreeForEditLecturer(lecturer.LecturerID, lecturer.RoomID.Value))
-                {
-                    ModelState.AddModelError("", "Selected room is not available or invalid.");
-
-                    // Build list of available rooms manually
-                    var allRooms = _roomRepository.GetAllRooms();
-                    var availableRooms = new List<Room>();
-
-                    foreach (Room room in allRooms)
-                    {
-                        bool isSingleRoom = room.RoomType == RoomType.Single;
-                        bool isUnoccupied = _lecturerRepository.GetLecturerByRoomID(room.RoomID) == null;
-                        bool isCurrentRoom = room.RoomID == lecturer.RoomID;
-
-                        if (isSingleRoom && (isUnoccupied || isCurrentRoom))
-                        {
-                            availableRooms.Add(room);
-                        }
-                    }
-
-                    ViewBag.AvailableRooms = availableRooms;
-                    return View(lecturer);
-                }
-
-                // If room is valid, update the lecturer
                 _lecturerRepository.UpdateLecturer(lecturer);
                 return RedirectToAction("Index");
             }
@@ -193,25 +121,15 @@ namespace Someren.Controllers
             {
                 Console.WriteLine($"Error: {ex.Message}");
 
-                // Build available rooms again in case of error
-                var allRooms = _roomRepository.GetAllRooms();
-                var availableRooms = new List<Room>();
-
-                foreach (Room room in allRooms)
-                {
-                    bool isSingleRoom = room.RoomType == RoomType.Single;
-                    bool isUnoccupied = _lecturerRepository.GetLecturerByRoomID(room.RoomID) == null;
-                    bool isCurrentRoom = room.RoomID == lecturer.RoomID;
-
-                    if (isSingleRoom && (isUnoccupied || isCurrentRoom))
-                    {
-                        availableRooms.Add(room);
-                    }
-                }
-
+                // Fallback to repopulate dropdown if something breaks
+                var availableRooms = _roomRepository.GetAvailableSingleRooms(lecturer.RoomID);
                 ViewBag.AvailableRooms = availableRooms;
+
                 return View(lecturer);
             }
         }
+
+
+
     }
 }

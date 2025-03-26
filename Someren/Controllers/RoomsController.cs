@@ -105,7 +105,9 @@ namespace Someren.Controllers
 
             return View(room);
         }
+             
 
+        [HttpGet]
         [HttpGet]
         public IActionResult Details(int? id)
         {
@@ -118,5 +120,6 @@ namespace Someren.Controllers
 
             return View(room);
         }
+
     }
 }
