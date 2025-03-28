@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Someren.Models;
 using Someren.Repositories;
+using System.Diagnostics.Metrics;
 
 namespace Someren.Controllers
 {
@@ -18,9 +20,8 @@ namespace Someren.Controllers
         public IActionResult Index(string? lastName)
         {
             ViewBag.FilteredLastName = lastName;
-
-            // Ensure lastName is not null when calling the repository
-            string safeLastName = lastName ?? "";
+           
+            string safeLastName = lastName ?? ""; // is guaranteed to lastName never be null,
 
             List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers(lastName);
 
@@ -40,30 +41,34 @@ namespace Someren.Controllers
         [HttpPost]
         public IActionResult Create(Lecturer lecturer)
         {
-            try
             {
-                // Check if RoomID is null or 0 (invalid)
                 if (lecturer.RoomID == null || lecturer.RoomID == 0)
                 {
                     ModelState.AddModelError("", "Please select a room.");
-                    // fall through to view return at the end
                 }
                 else
                 {
-                    _lecturerRepository.AddLecturer(lecturer);
-                    return RedirectToAction("Index");
+                    try
+                    {
+                        _lecturerRepository.AddLecturer(lecturer);
+                        return RedirectToAction("Index");
+                    }
+                    catch (SqlException ex) when (ex.Message.Contains("UQ_Lecturer_Name")) //is the name of the UNIQUE constraint in the database.
+                    {
+                        ModelState.AddModelError("", $"A lecturer named {lecturer.FirstName} {lecturer.LastName} already exists.");
+                    }
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError("", $"Error: {ex.Message}");
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError("", $"Error: {ex.Message}");
+
+                ViewData["Rooms"] = _roomRepository.GetAvailableSingleRooms();
+                return View(lecturer);
             }
 
-            // If validation failed or an exception happened, repopulate rooms and return the view
-            ViewData["Rooms"] = _roomRepository.GetAvailableSingleRooms();
-            return View(lecturer);
         }
-        
+
         [HttpGet]
         public IActionResult Delete(int? id)
         {
@@ -121,7 +126,7 @@ namespace Someren.Controllers
             {
                 Console.WriteLine($"Error: {ex.Message}");
 
-                // Fallback to repopulate dropdown if something breaks
+                // fill the ist of options again if something goes wrong
                 var availableRooms = _roomRepository.GetAvailableSingleRooms(lecturer.RoomID);
                 ViewBag.AvailableRooms = availableRooms;
 
