@@ -36,13 +36,14 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var student in Model.OrderBy(s => s.LastName))
+            @foreach (var student in Model)
             {
                 <tr class="text-center">
                     <td>@student.FirstName</td>
                     <td>@student.LastName</td>
                     <td>@student.PhoneNumber</td>
                     <td>@student.ClassName</td>
+                    <td>@(student.Room != null ? student.Room.RoomNumber : "Not Assigned")</td>
                     <td>
                         <a asp-action="Edit" asp-route-id="@student.StudentID" class="btn btn-sm btn-primary">
                             <i class="bi bi-pencil-square"></i> Edit
