@@ -5,64 +5,87 @@
     var rooms = ViewData["Rooms"] as List<Someren.Models.Room>;
 }
 
+<!-- Page container with margin -->
 <div class="container mt-5">
+    <!-- Card box with green border -->
     <div class="card border border-success border-3 rounded-4">
+        <!-- Header with green background and white text -->
         <div class="card-header bg-success text-white rounded-top-4">
             <h1 class="mb-0">Add Student</h1>
         </div>
 
+        <!-- Form content -->
         <div class="card-body">
             <form asp-action="Create" method="post">
+                <!-- Row 1: StudentNumber and First Name -->
                 <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="fw-bold" asp-for="FirstName">First Name:</label>
-                        <input type="text" asp-for="FirstName" class="form-control" required />
-                    </div>
-                    <div class="col-md-6">
-                        <label class="fw-bold" asp-for="LastName">Last Name:</label>
-                        <input type="text" asp-for="LastName" class="form-control" required />
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="fw-bold" asp-for="PhoneNumber">Phone Number:</label>
-                        <input type="tel" asp-for="PhoneNumber" class="form-control" pattern="^\+?[0-9\s\-]{7,15}$" required />
-                    </div>
                     <div class="col-md-6">
                         <label class="fw-bold" asp-for="StudentNumber">Student Number:</label>
                         <input type="text" asp-for="StudentNumber" class="form-control" required />
+                        <span asp-validation-for="StudentNumber" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="FirstName">First Name:</label>
+                        <input type="text" asp-for="FirstName" class="form-control" required />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
                     </div>
                 </div>
 
+                <!-- Row 2: Last Name and Phone Number -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="LastName">Last Name:</label>
+                        <input type="text" asp-for="LastName" class="form-control" required />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold" asp-for="PhoneNumber">Phone Number:</label>
+                        <input type="tel" asp-for="PhoneNumber" class="form-control" pattern="^\\+?[0-9\\s\\-]{7,15}$"
+                               placeholder="+1234567890" required />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Row 3: Class and Room -->
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="fw-bold" asp-for="ClassName">Class:</label>
-                        <input type="text" asp-for="ClassName" class="form-control" required />
+                        <input type="text" asp-for="ClassName" class="form-control" />
+                        <span asp-validation-for="ClassName" class="text-danger"></span>
                     </div>
                     <div class="col-md-6">
-                        <label class="fw-bold" asp-for="RoomID">Room (Dormitory only):</label>
-                        <select asp-for="RoomID" class="form-control">
+                        <label class="fw-bold" asp-for="RoomID">Room:</label>
+                        <select asp-for="RoomID" class="form-control" required>
                             <option value="">Select a room</option>
-                            @if (rooms != null && rooms.Any())
+                            @if (rooms != null)
                             {
-                                foreach (var room in rooms)
+                                if (rooms.Count > 0)
                                 {
-                                    <option value="@room.RoomID">Room @room.RoomNumber (Floor @room.Floor)</option>
+                                    foreach (var room in rooms)
+                                    {
+                                        <option value="@room.RoomID">@room.RoomNumber</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option disabled>No rooms available</option>
                                 }
                             }
                             else
                             {
-                                <option disabled>No dormitory rooms available</option>
+                                <option disabled>Failed to load rooms</option>
                             }
                         </select>
+                        <span asp-validation-for="RoomID" class="text-danger"></span>
                     </div>
                 </div>
 
+                <!-- Buttons -->
                 <div class="d-flex justify-content-between mt-4">
                     <a asp-action="Index" class="btn btn-secondary">
-                        <i class="bi bi-arrow-left"></i> Back to Student List
+                        <i class="bi bi-arrow-left"></i> Back to List
                     </a>
+
                     <button type="submit" class="btn btn-success px-4">
                         <i class="bi bi-plus-circle"></i> Add Student
                     </button>
@@ -71,3 +94,9 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

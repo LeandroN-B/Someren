@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Someren.Models;
 using Someren.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Someren.Controllers
 {
@@ -21,21 +18,8 @@ namespace Someren.Controllers
         public IActionResult Index(string? lastName)
         {
             ViewBag.FilteredLastName = lastName;
-
-            List<Student> students;
-
-            if (!string.IsNullOrEmpty(lastName))
-            {
-                students = _studentRepository.GetStudentsByLastName(lastName)
-                                             .OrderBy(s => s.LastName)
-                                             .ToList();
-            }
-            else
-            {
-                students = _studentRepository.GetAllStudents()
-                                             .OrderBy(s => s.LastName)
-                                             .ToList();
-            }
+            string safeLastName = lastName ?? "";
+            List<Student> students = _studentRepository.GetStudentsWithRoomAttached(safeLastName);
 
             return View(students);
         }
@@ -43,22 +27,7 @@ namespace Someren.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            List<Room> rooms = _roomRepository.GetAllRooms();
-            List<Room> availableDorms = new List<Room>();
-
-            foreach (Room room in rooms)
-            {
-                if (room.RoomType == RoomType.Dormitory)
-                {
-                    var studentsInRoom = _studentRepository.GetStudentsByRoomID(room.RoomID);
-                    if (studentsInRoom.Count < room.Capacity)
-                    {
-                        availableDorms.Add(room);
-                    }
-                }
-            }
-
-            ViewData["Rooms"] = availableDorms;
+            ViewData["Rooms"] = GetAvailableDormRooms();
             return View();
         }
 
@@ -70,26 +39,24 @@ namespace Someren.Controllers
                 if (student.RoomID == null || student.RoomID == 0)
                 {
                     ModelState.AddModelError("", "Please select a room.");
-                    ViewData["Rooms"] = GetAvailableDorms();
-                    return View(student);
                 }
-
-                if (!CanAddStudentToRoom(student.RoomID.Value))
+                else if (!RoomHasSpace(student.RoomID.Value))
                 {
                     ModelState.AddModelError("", "Selected room is already full.");
-                    ViewData["Rooms"] = GetAvailableDorms();
-                    return View(student);
                 }
-
-                _studentRepository.AddStudent(student);
-                return RedirectToAction("Index");
+                else
+                {
+                    _studentRepository.AddStudent(student);
+                    return RedirectToAction("Index");
+                }
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"Error: {ex.Message}");
-                ViewData["Rooms"] = GetAvailableDorms();
-                return View(student);
+                ModelState.AddModelError("", "Error: " + ex.Message);
             }
+
+            ViewData["Rooms"] = GetAvailableDormRooms();
+            return View(student);
         }
 
         [HttpGet]
@@ -97,27 +64,10 @@ namespace Someren.Controllers
         {
             if (id == null) return NotFound();
 
-            Student? student = _studentRepository.GetStudentByID((int)id);
+            Student? student = _studentRepository.GetStudentByID(id.Value);
             if (student == null) return NotFound();
 
-            List<Room> allRooms = _roomRepository.GetAllRooms();
-            List<Room> availableRooms = new List<Room>();
-
-            foreach (Room room in allRooms)
-            {
-                if (room.RoomType != RoomType.Dormitory) continue;
-
-                var studentsInRoom = _studentRepository.GetStudentsByRoomID(room.RoomID);
-                bool isCurrentRoom = room.RoomID == student.RoomID;
-                bool hasSpace = studentsInRoom.Count < room.Capacity;
-
-                if (hasSpace || isCurrentRoom)
-                {
-                    availableRooms.Add(room);
-                }
-            }
-
-            ViewBag.AvailableRooms = availableRooms;
+            ViewBag.AvailableRooms = GetAvailableDormRoomsForEdit(student);
             return View(student);
         }
 
@@ -129,26 +79,24 @@ namespace Someren.Controllers
                 if (student.RoomID == null || student.RoomID == 0)
                 {
                     ModelState.AddModelError("", "Please select a room.");
-                    ViewBag.AvailableRooms = GetAvailableDormsForEdit(student);
-                    return View(student);
                 }
-
-                if (!CanAssignRoomToStudent(student.StudentID, student.RoomID.Value))
+                else if (!RoomCanBeAssigned(student.StudentID, student.RoomID.Value))
                 {
                     ModelState.AddModelError("", "Selected room is already full.");
-                    ViewBag.AvailableRooms = GetAvailableDormsForEdit(student);
-                    return View(student);
                 }
-
-                _studentRepository.UpdateStudent(student);
-                return RedirectToAction("Index");
+                else
+                {
+                    _studentRepository.UpdateStudent(student);
+                    return RedirectToAction("Index");
+                }
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"Error: {ex.Message}");
-                ViewBag.AvailableRooms = GetAvailableDormsForEdit(student);
-                return View(student);
+                ModelState.AddModelError("", "Error: " + ex.Message);
             }
+
+            ViewBag.AvailableRooms = GetAvailableDormRoomsForEdit(student);
+            return View(student);
         }
 
         [HttpGet]
@@ -156,7 +104,7 @@ namespace Someren.Controllers
         {
             if (id == null) return NotFound();
 
-            Student? student = _studentRepository.GetStudentByID((int)id);
+            Student? student = _studentRepository.GetStudentByID(id.Value);
             if (student == null) return NotFound();
 
             return View(student);
@@ -170,55 +118,82 @@ namespace Someren.Controllers
                 _studentRepository.DeleteStudent(student);
                 return RedirectToAction("Index");
             }
-            catch (Exception)
+            catch
             {
                 return View(student);
             }
         }
 
-        // === Helpers ===
+        // === Helper Methods ===
 
-        private bool CanAddStudentToRoom(int roomId)
+        private List<Room> GetAvailableDormRooms()
         {
-            var room = _roomRepository.GetRoomByID(roomId);
-            if (room == null || room.RoomType != RoomType.Dormitory)
-                return false;
+            List<Room> availableDorms = new List<Room>();
+            List<Room> allRooms = _roomRepository.GetAllRooms();
 
-            var students = _studentRepository.GetStudentsByRoomID(roomId);
-            return students.Count < room.Capacity;
-        }
-
-        private bool CanAssignRoomToStudent(int studentId, int roomId)
-        {
-            var room = _roomRepository.GetRoomByID(roomId);
-            if (room == null || room.RoomType != RoomType.Dormitory)
-                return false;
-
-            var students = _studentRepository.GetStudentsByRoomID(roomId);
-            return students.Count < room.Capacity || students.Any(s => s.StudentID == studentId);
-        }
-
-        private List<Room> GetAvailableDorms()
-        {
-            return _roomRepository.GetAllRooms()
-                .Where(r => r.RoomType == RoomType.Dormitory &&
-                            _studentRepository.GetStudentsByRoomID(r.RoomID).Count < r.Capacity)
-                .ToList();
-        }
-
-        private List<Room> GetAvailableDormsForEdit(Student student)
-        {
-            var rooms = GetAvailableDorms();
-            var currentRoom = _roomRepository.GetRoomByID(student.RoomID ?? 0);
-            if (currentRoom != null && currentRoom.RoomType == RoomType.Dormitory)
+            foreach (Room room in allRooms)
             {
-                if (!rooms.Any(r => r.RoomID == currentRoom.RoomID))
+                if (room.RoomType == RoomType.Dormitory)
                 {
-                    rooms.Add(currentRoom);
+                    List<Student> studentsInRoom = _studentRepository.GetStudentsByRoomID(room.RoomID);
+                    if (studentsInRoom.Count < room.Capacity)
+                    {
+                        availableDorms.Add(room);
+                    }
                 }
             }
 
-            return rooms.OrderBy(r => r.RoomNumber).ToList();
+            return availableDorms;
+        }
+
+        private List<Room> GetAvailableDormRoomsForEdit(Student student)
+        {
+            List<Room> availableRooms = GetAvailableDormRooms();
+            Room? currentRoom = _roomRepository.GetRoomByID(student.RoomID ?? 0);
+
+            bool alreadyIncluded = false;
+            foreach (Room room in availableRooms)
+            {
+                if (room.RoomID == currentRoom?.RoomID)
+                {
+                    alreadyIncluded = true;
+                    break;
+                }
+            }
+
+            if (!alreadyIncluded && currentRoom != null && currentRoom.RoomType == RoomType.Dormitory)
+            {
+                availableRooms.Add(currentRoom);
+            }
+
+            return availableRooms;
+        }
+
+        private bool RoomHasSpace(int roomId)
+        {
+            Room? room = _roomRepository.GetRoomByID(roomId);
+            if (room == null || room.RoomType != RoomType.Dormitory)
+                return false;
+
+            List<Student> students = _studentRepository.GetStudentsByRoomID(roomId);
+            return students.Count < room.Capacity;
+        }
+
+        private bool RoomCanBeAssigned(int studentId, int roomId)
+        {
+            Room? room = _roomRepository.GetRoomByID(roomId);
+            if (room == null || room.RoomType != RoomType.Dormitory)
+                return false;
+
+            List<Student> students = _studentRepository.GetStudentsByRoomID(roomId);
+
+            foreach (Student s in students)
+            {
+                if (s.StudentID == studentId)
+                    return true; // allow current student to stay in their room
+            }
+
+            return students.Count < room.Capacity;
         }
     }
 }
