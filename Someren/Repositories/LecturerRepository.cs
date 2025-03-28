@@ -16,46 +16,15 @@ namespace Someren.Repositories
 
         public List<Lecturer> GetAllLecturers(string lastName = "")
         {
-            List<Lecturer> lecturers = new List<Lecturer>();
+            string query = "SELECT lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID " +
+                           "FROM Lecturer WHERE lastName LIKE @LastName ORDER BY lastName";
 
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            SqlParameter[] parameters = new SqlParameter[]
             {
-                connection.Open();
-                string query = "SELECT lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID " +
-                               "FROM Lecturer WHERE lastName LIKE @LastName ORDER BY lastName";
-                using (SqlCommand cmd = new SqlCommand(query, connection))
-                {
-                    try
-                    {
-                        cmd.Parameters.AddWithValue("@LastName", "%" + lastName + "%");
+                new SqlParameter("@LastName", "%" + lastName + "%")
+            };
 
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                int lecturerID = Convert.ToInt32(reader["lecturerID"]);
-                                string firstName = reader["firstName"]?.ToString() ?? string.Empty;
-                                string lastNameValue = reader["lastName"]?.ToString() ?? string.Empty;
-                                string phoneNumber = reader["phoneNumber"]?.ToString() ?? string.Empty;
-                                DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
-                                int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0;
-
-                                lecturers.Add(new Lecturer(lecturerID, firstName, lastNameValue, phoneNumber, dateOfBirth, roomID));
-                            }
-                        }
-                    }
-                    catch (SqlException ex)
-                    {
-                        throw new Exception("Something went wrong with the database", ex);
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception("Something went wrong reading data", ex);
-                    }
-                    //end method refactoring
-                }
-                return lecturers;
-            }
+            return ExecuteQueryMapLecturerList(query, parameters);
         }
         public Lecturer? GetLecturerByID(int id)
         {
@@ -63,7 +32,7 @@ namespace Someren.Repositories
             SqlParameter[] sqlParameters =
             {
                 new SqlParameter("@LecturerID", SqlDbType.Int) { Value = id }
-        };
+            };
 
             return ExecuteQueryMapLecturer(query, sqlParameters);
         }
@@ -95,7 +64,7 @@ namespace Someren.Repositories
                     }
                     catch (SqlException ex)
                     {
-                        throw new Exception("A database error occurred while adding the lecturer.", ex);
+                        throw; //no specification here to let my controller check the message directly
                     }
                     catch (Exception ex)
                     {
@@ -189,5 +158,45 @@ namespace Someren.Repositories
             }
 
         }
+        private List<Lecturer> ExecuteQueryMapLecturerList(string query, SqlParameter[] parameters)
+        {
+            List<Lecturer> lecturers = new List<Lecturer>();
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                command.Parameters.AddRange(parameters);
+
+                try
+                {
+                    connection.Open();
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            lecturers.Add(new Lecturer(
+                                Convert.ToInt32(reader["lecturerID"]),
+                                reader["firstName"]?.ToString() ?? string.Empty,
+                                reader["lastName"]?.ToString() ?? string.Empty,
+                                reader["phoneNumber"]?.ToString() ?? string.Empty,
+                                Convert.ToDateTime(reader["dateOfBirth"]),
+                                reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0
+                            ));
+                        }
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    throw new Exception("Database error while loading lecturers.", ex);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error mapping lecturers from result.", ex);
+                }
+            }
+
+            return lecturers;
+        }
     }
+
 }
