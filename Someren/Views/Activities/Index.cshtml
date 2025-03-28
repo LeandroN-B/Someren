@@ -35,6 +35,7 @@
                     <td>
                         <a asp-action="Edit" asp-route-id="@activity.ActivityID" class="btn btn-sm btn-primary">Edit</a>
                         <a asp-action="Delete" asp-route-id="@activity.ActivityID" class="btn btn-sm btn-danger">Delete</a>
+                        <a asp-action="ManageSupervisors" asp-route-activityId="@activity.ActivityID" class="btn btn-sm btn-info">Supervisors</a>
                     </td>
                 </tr>
             }

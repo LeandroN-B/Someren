@@ -197,6 +197,80 @@ namespace Someren.Repositories
 
             return lecturers;
         }
+        public List<Lecturer> GetSupervisorsForActivity(int activityId)
+        {
+            string query = @"
+        SELECT l.lecturerID, l.firstName, l.lastName, l.phoneNumber, l.dateOfBirth, l.roomID
+        FROM Lecturer l
+        INNER JOIN Supervises s ON l.lecturerID = s.lecturerID
+        WHERE s.activityID = @ActivityID";
+
+            SqlParameter[] parameters =
+            {
+        new SqlParameter("@ActivityID", activityId)
+    };
+
+            return ExecuteQueryMapLecturerList(query, parameters);
+        }
+        public List<Lecturer> GetNonSupervisorsForActivity(int activityId)
+        {
+            string query = @"
+        SELECT l.lecturerID, l.firstName, l.lastName, l.phoneNumber, l.dateOfBirth, l.roomID
+        FROM Lecturer l
+        WHERE l.lecturerID NOT IN (
+            SELECT lecturerID FROM Supervises WHERE activityID = @ActivityID
+        )";
+
+            SqlParameter[] parameters =
+            {
+        new SqlParameter("@ActivityID", activityId)
+    };
+
+            return ExecuteQueryMapLecturerList(query, parameters);
+        }
+        public void AddSupervisor(int activityId, int lecturerId)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "INSERT INTO Supervises (activityID, lecturerID) VALUES (@ActivityID, @LecturerID)";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ActivityID", activityId);
+                    command.Parameters.AddWithValue("@LecturerID", lecturerId);
+
+                    connection.Open();
+                    int rowsAffected = command.ExecuteNonQuery();
+
+                    if (rowsAffected == 0)
+                    {
+                        throw new Exception("Failed to add supervisor.");
+                    }
+                }
+            }
+        }
+        public void RemoveSupervisor(int activityId, int lecturerId)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "DELETE FROM Supervises WHERE activityID = @ActivityID AND lecturerID = @LecturerID";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ActivityID", activityId);
+                    command.Parameters.AddWithValue("@LecturerID", lecturerId);
+
+                    connection.Open();
+                    int rowsAffected = command.ExecuteNonQuery();
+
+                    if (rowsAffected == 0)
+                    {
+                        throw new Exception("Failed to remove supervisor.");
+                    }
+                }
+            }
+        }
+
     }
 
 }

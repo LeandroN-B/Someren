@@ -1,0 +1,95 @@
+﻿@model Someren.Models.ActivitySupervisors
+
+@{
+    ViewData["Title"] = "Manage Supervisors";
+}
+
+<div class="container mt-5">
+    <div class="card border border-primary border-3 rounded-4">
+        <div class="card-header bg-primary text-white rounded-top-4">
+            <h2 class="mb-0">@Model.Activity.ActivityName - Manage Supervisors</h2>
+        </div>
+        <div class="card-body">
+            @if (TempData["Message"] != null)
+            {
+                <div class="alert alert-success">@TempData["Message"]</div>
+            }
+
+            <div class="row">
+                <!-- Supervisors section -->
+                <div class="col-md-6">
+                    <h4>Current Supervisors</h4>
+                    @if (Model.Supervisors.Any())
+                    {
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var lecturer in Model.Supervisors)
+                                {
+                                    <tr>
+                                        <td>@lecturer.FirstName @lecturer.LastName</td>
+                                        <td>
+                                            <a asp-action="RemoveSupervisor"
+                                               asp-route-activityId="@Model.Activity.ActivityID"
+                                               asp-route-lecturerId="@lecturer.LecturerID"
+                                               class="btn btn-sm btn-danger">Remove</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No supervisors assigned yet.</p>
+                    }
+                </div>
+
+                <!-- Non-supervisors section -->
+                <div class="col-md-6">
+                    <h4>Available Lecturers</h4>
+                    @if (Model.NonSupervisors.Any())
+                    {
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var lecturer in Model.NonSupervisors)
+                                {
+                                    <tr>
+                                        <td>@lecturer.FirstName @lecturer.LastName</td>
+                                        <td>
+                                            <a asp-action="AddSupervisor"
+                                               asp-route-activityId="@Model.Activity.ActivityID"
+                                               asp-route-lecturerId="@lecturer.LecturerID"
+                                               class="btn btn-sm btn-success">Add</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted">All lecturers are already supervisors.</p>
+                    }
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Activities
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

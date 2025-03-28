@@ -8,10 +8,13 @@ namespace Someren.Controllers
     public class ActivitiesController : Controller
     {
         private readonly IActivityRepository _activityRepository;
+        private readonly ILecturerRepository _lecturerRepository;
 
-        public ActivitiesController(IActivityRepository activityRepository)
+
+        public ActivitiesController(IActivityRepository activityRepository, ILecturerRepository lecturerRepository)
         {
             _activityRepository = activityRepository;
+            _lecturerRepository = lecturerRepository;
         }
 
         public IActionResult Index()
@@ -110,6 +113,37 @@ namespace Someren.Controllers
             {
                 return View(activity);
             }
+        }
+        [HttpGet]
+        [HttpGet]
+        public IActionResult ManageSupervisors(int activityId)
+        {
+            var activity = _activityRepository.GetActivityByID(activityId);
+            var supervisors = _lecturerRepository.GetSupervisorsForActivity(activityId);
+            var nonSupervisors = _lecturerRepository.GetNonSupervisorsForActivity(activityId);
+
+            var viewModel = new ActivitySupervisors
+            {
+                Activity = activity,
+                Supervisors = supervisors,
+                NonSupervisors = nonSupervisors
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpGet]
+        public IActionResult AddSupervisor(int activityId, int lecturerId)
+        {
+            _lecturerRepository.AddSupervisor(activityId, lecturerId);
+            return RedirectToAction("ManageSupervisors", new { activityId });
+        }
+
+        [HttpGet]
+        public IActionResult RemoveSupervisor(int activityId, int lecturerId)
+        {
+            _lecturerRepository.RemoveSupervisor(activityId, lecturerId);
+            return RedirectToAction("ManageSupervisors", new { activityId });
         }
     }
 }
