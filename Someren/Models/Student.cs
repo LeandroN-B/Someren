@@ -18,11 +18,10 @@ namespace Someren.Models
 
         public int? RoomID { get; set; }
 
-        public string FullName => $"{FirstName} {LastName}";
         public Room? Room { get; set; }
 
 
-        // Parameterless constructor for model binding
+
         public Student() { }
 
         public Student(int studentID, string studentNumber, string firstName, string lastName, string phoneNumber, string className, int? roomID)
