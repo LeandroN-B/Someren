@@ -1,0 +1,57 @@
+﻿@model Someren.Models.Activity
+
+ViewData["Title"] = "Edit Activity";
+}
+
+<div class="container mt-5">
+    <div class="card border border-success border-3 rounded-4">
+        <div class="card-header bg-success text-white rounded-top-4">
+            <h1 class="mb-0">@ViewData["Title"]</h1>
+        </div>
+        <div class="card-body">
+            <form asp-action="Edit">
+                <input type="hidden" asp-for="ActivityID" />
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="ActivityName" class="form-label fw-bold"></label>
+                    <input asp-for="ActivityName" class="form-control" />
+                    <span asp-validation-for="ActivityName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ActivityDate" class="form-label fw-bold"></label>
+                    <input asp-for="ActivityDate" type="date" class="form-control" />
+                    <span asp-validation-for="ActivityDate" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="TimeOfDay" class="form-label fw-bold">Time of Day</label>
+                    <select asp-for="TimeOfDay" class="form-control">
+                        <option value="">Select...</option>
+                        <option>Morning</option>
+                        <option>Afternoon</option>
+                    </select>
+                    <span asp-validation-for="TimeOfDay" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="StartTime" class="form-label fw-bold">Start Time</label>
+                    <input asp-for="StartTime" type="time" class="form-control" />
+                    <span asp-validation-for="StartTime" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="EndTime" class="form-label fw-bold">End Time</label>
+                    <input asp-for="EndTime" type="time" class="form-control" />
+                    <span asp-validation-for="EndTime" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                    <button type="submit" class="btn btn-success">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
