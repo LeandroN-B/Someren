@@ -31,28 +31,28 @@ namespace Someren.Controllers
 
         [HttpPost]
         public IActionResult Create(Activity activity)
-        {            
-                if (!ModelState.IsValid)
-                {
-                    return View(activity);
-                }
-
-                try
-                {
-                    _activityRepository.AddActivity(activity);
-                    return RedirectToAction("Index");
-                }
-                catch (SqlException ex) when (ex.Message.Contains("UQ_Activity_Name"))//Unique name, same strategy used in Lecturer
-                {
-                    ModelState.AddModelError("", "An activity with this name already exists.");
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("", $"Error: {ex.Message}");
-                }
-
+        {
+            if (!ModelState.IsValid)
+            {
                 return View(activity);
-            
+            }
+
+            try
+            {
+                _activityRepository.AddActivity(activity);
+                return RedirectToAction("Index");
+            }
+            catch (SqlException ex) when (ex.Message.Contains("UQ_Activity_Name"))//Unique name, same strategy used in Lecturer
+            {
+                ModelState.AddModelError("", "An activity with this name already exists.");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Error: {ex.Message}");
+            }
+
+            return View(activity);
+
         }
 
         [HttpGet]
@@ -115,20 +115,9 @@ namespace Someren.Controllers
             }
         }
         [HttpGet]
-        [HttpGet]
         public IActionResult ManageSupervisors(int activityId)
         {
-            var activity = _activityRepository.GetActivityByID(activityId);
-            var supervisors = _lecturerRepository.GetSupervisorsForActivity(activityId);
-            var nonSupervisors = _lecturerRepository.GetNonSupervisorsForActivity(activityId);
-
-            var viewModel = new ActivitySupervisors
-            {
-                Activity = activity,
-                Supervisors = supervisors,
-                NonSupervisors = nonSupervisors
-            };
-
+            var viewModel = LoadSupervisorViewModel(activityId);
             return View(viewModel);
         }
 
@@ -136,14 +125,30 @@ namespace Someren.Controllers
         public IActionResult AddSupervisor(int activityId, int lecturerId)
         {
             _lecturerRepository.AddSupervisor(activityId, lecturerId);
-            return RedirectToAction("ManageSupervisors", new { activityId });
+            ViewBag.Message = "Lecturer was successfully added as a supervisor.";
+            return View("ManageSupervisors", LoadSupervisorViewModel(activityId));
         }
 
         [HttpGet]
         public IActionResult RemoveSupervisor(int activityId, int lecturerId)
         {
             _lecturerRepository.RemoveSupervisor(activityId, lecturerId);
-            return RedirectToAction("ManageSupervisors", new { activityId });
+            ViewBag.Message = "Lecturer was removed from supervisors.";
+            return View("ManageSupervisors", LoadSupervisorViewModel(activityId));
+        }
+        //to reduce repetition in supervisor logics
+        private ActivitySupervisors LoadSupervisorViewModel(int activityId)
+        {
+            var activity = _activityRepository.GetActivityByID(activityId);
+            var supervisors = _lecturerRepository.GetSupervisorsForActivity(activityId);
+            var nonSupervisors = _lecturerRepository.GetNonSupervisorsForActivity(activityId);
+
+            return new ActivitySupervisors
+            {
+                Activity = activity,
+                Supervisors = supervisors,
+                NonSupervisors = nonSupervisors
+            };
         }
     }
 }
