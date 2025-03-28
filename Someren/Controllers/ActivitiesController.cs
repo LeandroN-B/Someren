@@ -1,6 +1,7 @@
 ﻿using Someren.Models;
 using Microsoft.AspNetCore.Mvc;
 using Someren.Repositories;
+using Microsoft.Data.SqlClient;
 
 namespace Someren.Controllers
 {
@@ -27,22 +28,28 @@ namespace Someren.Controllers
 
         [HttpPost]
         public IActionResult Create(Activity activity)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(activity);
-            }
+        {            
+                if (!ModelState.IsValid)
+                {
+                    return View(activity);
+                }
 
-            try
-            {
-                _activityRepository.AddActivity(activity);
-                return RedirectToAction("Index");
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError("", $"Error: {ex.Message}");
+                try
+                {
+                    _activityRepository.AddActivity(activity);
+                    return RedirectToAction("Index");
+                }
+                catch (SqlException ex) when (ex.Message.Contains("UQ_Activity_Name"))//Unique name, same strategy used in Lecturer
+                {
+                    ModelState.AddModelError("", "An activity with this name already exists.");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Error: {ex.Message}");
+                }
+
                 return View(activity);
-            }
+            
         }
 
         [HttpGet]
