@@ -9,8 +9,9 @@ namespace Someren.Repositories
     public class StudentRepository : IStudentRepository
     {
         private readonly string _connectionString;
+        private readonly IActivityRepository _activityRepository;
 
-        public StudentRepository(IConfiguration configuration)
+        public StudentRepository(IConfiguration configuration, IActivityRepository activityRepository)
         {
             _connectionString = configuration.GetConnectionString("test1database")
                 ?? throw new ArgumentNullException(nameof(configuration));
@@ -248,6 +249,127 @@ namespace Someren.Repositories
             }
 
             return students;
+        }
+
+
+
+
+        // ------------------------------------------------------
+        // Activity - Manage Participants
+        // ------------------------------------------------------
+
+        public List<Student> GetParticipantsForActivity(int activityId)
+        {
+            string query = @"SELECT s.studentID, s.studentNumber, s.firstName, s.lastName, s.phoneNumber, s.class, s.roomID
+                     FROM Participates p
+                     INNER JOIN Student s ON s.StudentID = p.StudentID
+                     WHERE p.ActivityID = @ActivityID";
+
+            return ExecuteReaderWithActivityId(query, activityId);
+        }
+
+        public List<Student> GetNonParticipantsForActivity(int activityId)
+        {
+            string query = @"SELECT s.studentID, s.studentNumber, s.firstName, s.lastName, s.phoneNumber, s.class, s.roomID
+                     FROM Student s
+                     WHERE NOT EXISTS (
+                                        SELECT 1 FROM Participates p
+                                        WHERE p.StudentID = s.StudentID AND p.ActivityID = @ActivityID)";
+
+            return ExecuteReaderWithActivityId(query, activityId);
+        }
+
+
+        public void AddParticipant(int activityId, int studentId)
+        {
+            string query = "INSERT INTO Participates (ActivityID, StudentID) VALUES (@ActivityID, @StudentID)";
+            ExecuteNonQueryWithActivityAndStudent(query, activityId, studentId);
+        }
+
+        public void RemoveParticipant(int activityId, int studentId)
+        {
+            string query = "DELETE FROM Participates WHERE ActivityID = @ActivityID AND StudentID = @StudentID";
+            ExecuteNonQueryWithActivityAndStudent(query, activityId, studentId);
+        }
+
+        public ActivityParticipants GetActivityParticipants(int activityId, string message)
+        {
+            ActivityParticipants result = new ActivityParticipants();
+
+            result.ActivityID = activityId;
+            result.Activity = _activityRepository.GetActivityByID(activityId);
+            result.Participants = GetParticipantsForActivity(activityId);
+            result.NonParticipants = GetNonParticipantsForActivity(activityId);
+
+            if (message != null)
+            {
+                result.ConfirmationMessage = message;
+            }
+            else
+            {
+                result.ConfirmationMessage = string.Empty;
+            }
+
+            return result;
+        }
+
+
+
+        //  ---- Private Helpers ---- //
+
+        private List<Student> ExecuteReaderWithActivityId(string query, int activityId)
+        {
+            List<Student> students = new List<Student>();
+
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ActivityID", activityId);
+                    connection.Open();
+
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            Student student = MapStudent(reader);
+                            students.Add(student);
+                        }
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                throw new Exception("An error occurred while retrieving students for the activity.", ex);
+            }
+
+            return students;
+        }
+
+        private void ExecuteNonQueryWithActivityAndStudent(string query, int activityId, int studentId)
+        {
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ActivityID", activityId);
+                    command.Parameters.AddWithValue("@StudentID", studentId);
+
+                    connection.Open();
+                    int rowsAffected = command.ExecuteNonQuery();
+
+                    if (rowsAffected == 0)
+                    {
+                        throw new Exception("No rows were affected. Participant may already exist or not be found.");
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                throw new Exception("An error occurred while updating participant data.", ex);
+            }
         }
     }
 }

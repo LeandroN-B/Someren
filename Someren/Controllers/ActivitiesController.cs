@@ -9,13 +9,17 @@ namespace Someren.Controllers
     {
         private readonly IActivityRepository _activityRepository;
         private readonly ILecturerRepository _lecturerRepository;
+        private readonly IStudentRepository _studentRepository;
 
 
-        public ActivitiesController(IActivityRepository activityRepository, ILecturerRepository lecturerRepository)
+        public ActivitiesController(IActivityRepository activityRepository, ILecturerRepository lecturerRepository, IStudentRepository studentRepository)
         {
             _activityRepository = activityRepository;
             _lecturerRepository = lecturerRepository;
+            _studentRepository = studentRepository;
         }
+
+
 
         public IActionResult Index()
         {
@@ -114,6 +118,7 @@ namespace Someren.Controllers
                 return View(activity);
             }
         }
+        
         [HttpGet]
         public IActionResult ManageSupervisors(int activityId)
         {
@@ -150,5 +155,71 @@ namespace Someren.Controllers
                 NonSupervisors = nonSupervisors
             };
         }
+
+
+
+        // ------------------ Participants ------------------ //
+
+        [HttpGet]
+        public IActionResult ManageParticipants(int activityId)
+        {
+            try
+            {
+                string? message = TempData["Message"] as string;
+
+                Activity activity = _activityRepository.GetActivityByID(activityId);
+                List<Student> participants = _studentRepository.GetParticipantsForActivity(activityId);
+                List<Student> nonParticipants = _studentRepository.GetNonParticipantsForActivity(activityId);
+
+                ActivityParticipants viewModel = new ActivityParticipants
+                {
+                    ActivityID = activityId,
+                    Activity = activity,
+                    Participants = participants,
+                    NonParticipants = nonParticipants,
+                    ConfirmationMessage = message ?? string.Empty
+                };
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                return View("Error", $"Error loading participants: {ex.Message}");
+            }
+        }
+
+        [HttpGet]
+        public IActionResult AddParticipant(int activityId, int studentId)
+        {
+            try
+            {
+                _studentRepository.AddParticipant(activityId, studentId);
+                TempData["Message"] = "Added: Student was successfully added.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Message"] = $"Removed: Error - {ex.Message}";
+            }
+
+            return RedirectToAction("ManageParticipants", new { activityId });
+        }
+
+        [HttpGet]
+        public IActionResult RemoveParticipant(int activityId, int studentId)
+        {
+            try
+            {
+                _studentRepository.RemoveParticipant(activityId, studentId);
+                TempData["Message"] = "Removed: Student was successfully removed.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Message"] = $"Removed: Error - {ex.Message}";
+            }
+
+            return RedirectToAction("ManageParticipants", new { activityId });
+        }
+
+
     }
 }
