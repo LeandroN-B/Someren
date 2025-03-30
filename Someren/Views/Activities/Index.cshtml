@@ -7,7 +7,7 @@
 <div class="container mt-5">
     <div class="d-flex justify-content-between mb-3">
         <h2>Activities</h2>
-        <a asp-action="Create" class="btn btn-success">Add New Activity</a>
+        <a asp-action="Create" class="btn btn-success d-flex align-items-center justify-content-center">Add New Activity</a>
     </div>
 
     <table class="table table-bordered table-striped">
@@ -36,6 +36,7 @@
                         <a asp-action="Edit" asp-route-id="@activity.ActivityID" class="btn btn-sm btn-primary">Edit</a>
                         <a asp-action="Delete" asp-route-id="@activity.ActivityID" class="btn btn-sm btn-danger">Delete</a>
                         <a asp-action="ManageSupervisors" asp-route-activityId="@activity.ActivityID" class="btn btn-sm btn-info">Supervisors</a>
+                        <a asp-action="ManageParticipants" asp-route-activityId="@activity.ActivityID" class="btn btn-sm btn-info">Participants</a>
                     </td>
                 </tr>
             }
