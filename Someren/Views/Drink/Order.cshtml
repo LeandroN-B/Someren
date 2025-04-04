@@ -1,0 +1,142 @@
+﻿@model Someren.Models.DrinkOrderViewModel
+
+@{
+    ViewData["Title"] = "Place Drink Order";
+
+    int maxQuantity = 0;
+
+    if (Model.UserType == "Student")
+    {
+        maxQuantity = Math.Min(
+            Model.VouchersRemaining,
+            Model.Drinks.FirstOrDefault(d => d.DrinkId == Model.SelectedDrinkId)?.Stock ?? 0
+        );
+    }
+    else
+    {
+        maxQuantity = Model.Drinks.FirstOrDefault(d => d.DrinkId == Model.SelectedDrinkId)?.Stock ?? 0;
+    }
+
+    var inputDisabled = Model.Quantity <= 0 ? "disabled" : "";
+    var buttonDisabled = Model.Quantity <= 0 ? "disabled" : "";
+}
+
+<div class="container mt-5">
+    <div class="card border border-success border-3 rounded-4">
+        <div class="card-header bg-success text-white rounded-top-4">
+            <h1 class="mb-0">Place Drink Order</h1>
+        </div>
+
+        <div class="card-body">
+            @* Success and error messages *@
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success fw-bold">@TempData["SuccessMessage"]</div>
+            }
+
+            @if (TempData["ErrorMessage"] != null && TempData["FormSubmitted"] != null)
+            {
+                <div class="alert alert-danger fw-bold">@TempData["ErrorMessage"]</div>
+            }
+
+            @* FORM 1: GET form for selections *@
+            <form asp-action="Order" method="get">
+                <div class="mb-3">
+                    <label class="fw-bold">Who is placing the order?</label><br />
+                    <input type="radio" name="userType" value="Student" @(Model.UserType == "Student" ? "checked" : "") onchange="this.form.submit()" /> Student
+                    <input type="radio" name="userType" value="Lecturer" @(Model.UserType == "Lecturer" ? "checked" : "") onchange="this.form.submit()" /> Lecturer
+                </div>
+
+                @if (Model.UserType == "Student")
+                {
+                    <div class="mb-3">
+                        <label class="fw-bold">Select Student:</label>
+                        <select asp-for="SelectedStudentId" asp-items="Model.StudentSelectList" class="form-control" onchange="this.form.submit()">
+                            <option value="">-- Select a student --</option>
+                        </select>
+                    </div>
+                }
+
+                @if (Model.UserType == "Lecturer")
+                {
+                    <div class="mb-3">
+                        <label class="fw-bold">Select Lecturer:</label>
+                        <select asp-for="SelectedLecturerId" asp-items="Model.LecturerSelectList" class="form-control" onchange="this.form.submit()">
+                            <option value="">-- Select a lecturer --</option>
+                        </select>
+                    </div>
+                }
+
+                <div class="mb-3 mt-3">
+                    <label class="fw-bold">Select Drink:</label>
+                    <select asp-for="SelectedDrinkId" class="form-control" required onchange="this.form.submit()">
+                        <option value="">-- Select a drink --</option>
+                        <optgroup label="🍷 Alcoholic Drinks">
+                            @foreach (var drink in Model.Drinks.Where(d => d.IsAlcoholic))
+                            {
+                                <option value="@drink.DrinkId">@drink.Name (@drink.Stock in stock)</option>
+                            }
+                        </optgroup>
+                        <optgroup label="🥤 Non-Alcoholic Drinks">
+                            @foreach (var drink in Model.Drinks.Where(d => !d.IsAlcoholic))
+                            {
+                                <option value="@drink.DrinkId">@drink.Name (@drink.Stock in stock)</option>
+                            }
+                        </optgroup>
+                    </select>
+                </div>
+
+                @* Preserve quantity in case of page reload *@
+                <input type="hidden" name="quantity" value="@Model.Quantity" />
+            </form>
+
+            @* Voucher refill form (separate form outside of POST form) *@
+            @if (Model.UserType == "Student")
+            {
+                <form asp-action="RefillVouchers" method="post" class="mb-3">
+                    <input type="hidden" name="studentId" value="@Model.SelectedStudentId" />
+                    <input type="hidden" name="amount" value="3" />
+                    <button type="submit" class="btn btn-primary">Buy Vouchers (3)</button>
+                </form>
+            }
+
+            @* FORM 2: POST form to place the order *@
+            <form asp-action="Order" method="post">
+                <input type="hidden" name="SelectedStudentId" value="@Model.SelectedStudentId" />
+                <input type="hidden" name="SelectedLecturerId" value="@Model.SelectedLecturerId" />
+                <input type="hidden" name="UserType" value="@Model.UserType" />
+                <input type="hidden" name="SelectedDrinkId" value="@Model.SelectedDrinkId" />
+
+                @if (Model.UserType == "Student")
+                {
+                    <div class="mb-3">
+                        <label class="fw-bold">Vouchers Remaining:</label>
+                        <input type="text" class="form-control" readonly value="@Model.VouchersRemaining" />
+                        <small class="text-warning">Students need 1 voucher per drink!</small>
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <label class="fw-bold">Quantity:</label>
+                    <input name="Quantity" type="number" class="form-control"
+                           min="1"
+                           max="@Model.Quantity"
+                           placeholder="Please select a drink"
+                    @inputDisabled required />
+                    <small class="text-muted">
+                        @(Model.Quantity > 0 ? $"Max quantity: {Model.Quantity}" : "Select a drink to see quantity options")
+                    </small>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Dashboard
+                    </a>
+                    <button type="submit" class="btn btn-success px-4" @buttonDisabled>
+                        <i class="bi bi-cart-plus"></i> Place Order!
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

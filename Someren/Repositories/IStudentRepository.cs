@@ -12,6 +12,8 @@ namespace Someren.Repositories
         void DeleteStudent(Student student);
         List<Student> GetStudentsByRoomID(int roomId);
         List<Student> GetStudentsWithRoomAttached(string lastName = "");
+        void UseVouchers(int studentId, int quantity);
+        void AddVouchers(int studentId, int amount);
 
     }
 }
