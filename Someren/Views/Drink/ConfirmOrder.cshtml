@@ -1,0 +1,80 @@
+﻿@model Someren.Models.DrinkOrderViewModel
+
+@{
+    ViewData["Title"] = "Confirm Drink Order";
+
+    var selectedDrink = Model.Drinks.FirstOrDefault(d => d.DrinkId == Model.SelectedDrinkId);
+    var selectedStudent = Model.Students.FirstOrDefault(s => s.StudentID == Model.SelectedStudentId);
+    var selectedLecturer = Model.Lecturers.FirstOrDefault(l => l.LecturerID == Model.SelectedLecturerId);
+}
+
+<div class="container mt-5">
+    <div class="card border border-info border-3 rounded-4">
+        <div class="card-header bg-info text-white rounded-top-4">
+            <h1 class="mb-0">Confirm Order</h1>
+        </div>
+
+        <div class="card-body">
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger fw-bold">@TempData["ErrorMessage"]</div>
+            }
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success fw-bold">@TempData["SuccessMessage"]</div>
+            }
+
+            <h4 class="fw-bold mb-3">Order Details:</h4>
+            <ul class="list-group mb-4">
+                <li class="list-group-item">
+                    <strong>User Type:</strong> @Model.UserType
+                </li>
+
+                @if (Model.UserType == "Student" && selectedStudent != null)
+                {
+                    <li class="list-group-item">
+                        <strong>Student:</strong> @selectedStudent.FirstName @selectedStudent.LastName
+                    </li>
+                }
+
+                @if (Model.UserType == "Lecturer" && selectedLecturer != null)
+                {
+                    <li class="list-group-item">
+                        <strong>Lecturer:</strong> @selectedLecturer.FirstName @selectedLecturer.LastName
+                    </li>
+                }
+
+                @if (selectedDrink != null)
+                {
+                    <li class="list-group-item">
+                        <strong>Drink:</strong> @selectedDrink.Name
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Quantity:</strong> @Model.Quantity
+                    </li>
+                    <li class="list-group-item">
+                        <strong>VAT:</strong> @(selectedDrink.IsAlcoholic ? "21%" : "9%")
+                    </li>
+                }
+            </ul>
+            <form asp-action="ConfirmOrder" method="post">
+                <input type="hidden" name="SelectedStudentId" value="@Model.SelectedStudentId" />
+                <input type="hidden" name="SelectedLecturerId" value="@Model.SelectedLecturerId" />
+                <input type="hidden" name="SelectedDrinkId" value="@Model.SelectedDrinkId" />
+                <input type="hidden" name="Quantity" value="@Model.Quantity" />
+                <input type="hidden" name="UserType" value="@Model.UserType" />
+
+
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Order" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Confirm Order
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

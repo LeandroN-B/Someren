@@ -1,7 +1,5 @@
 using Microsoft.Data.SqlClient;
 using Someren.Models;
-using System;
-using System.Collections.Generic;
 using System.Data;
 
 namespace Someren.Repositories
@@ -19,7 +17,7 @@ namespace Someren.Repositories
 
         public List<Student> GetAllStudents(string lastName = "")
         {
-            string query = @"SELECT studentID, studentNumber, firstName, lastName, phoneNumber, class, roomID 
+            string query = @"SELECT studentID, studentNumber, firstName, lastName, phoneNumber, class, roomID, Vouchers 
                              FROM Student 
                              WHERE lastName LIKE @LastName 
                              ORDER BY lastName";
@@ -33,7 +31,7 @@ namespace Someren.Repositories
 
         public Student? GetStudentByID(int id)
         {
-            string query = @"SELECT studentID, studentNumber, firstName, lastName, phoneNumber, class, roomID 
+            string query = @"SELECT studentID, studentNumber, firstName, lastName, phoneNumber, class, roomID, Vouchers 
                              FROM Student 
                              WHERE studentID = @StudentID";
 
@@ -46,7 +44,7 @@ namespace Someren.Repositories
 
         public List<Student> GetStudentsByRoomID(int roomId)
         {
-            string query = @"SELECT studentID, studentNumber, firstName, lastName, phoneNumber, class, roomID 
+            string query = @"SELECT studentID, studentNumber, firstName, lastName, phoneNumber, class, roomID, Vouchers 
                              FROM Student 
                              WHERE roomID = @RoomID";
 
@@ -62,28 +60,19 @@ namespace Someren.Repositories
             string query = @"INSERT INTO Student (studentNumber, firstName, lastName, phoneNumber, class, roomID) 
                              VALUES (@StudentNumber, @FirstName, @LastName, @PhoneNumber, @Class, @RoomID)";
 
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            using (SqlCommand command = new SqlCommand(query, connection))
-            {
-                command.Parameters.AddWithValue("@StudentNumber", student.StudentNumber);
-                command.Parameters.AddWithValue("@FirstName", student.FirstName);
-                command.Parameters.AddWithValue("@LastName", student.LastName);
-                command.Parameters.AddWithValue("@PhoneNumber", student.PhoneNumber);
-                command.Parameters.AddWithValue("@Class", student.ClassName);
-                command.Parameters.AddWithValue("@RoomID", student.RoomID ?? (object)DBNull.Value);
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand(query, connection);
 
-                try
-                {
-                    connection.Open();
-                    int rowsAffected = command.ExecuteNonQuery();
-                    if (rowsAffected != 1)
-                        throw new Exception("Insert failed: no rows affected.");
-                }
-                catch (SqlException ex)
-                {
-                    throw new Exception("SQL error while adding student.", ex);
-                }
-            }
+            command.Parameters.AddWithValue("@StudentNumber", student.StudentNumber);
+            command.Parameters.AddWithValue("@FirstName", student.FirstName);
+            command.Parameters.AddWithValue("@LastName", student.LastName);
+            command.Parameters.AddWithValue("@PhoneNumber", student.PhoneNumber);
+            command.Parameters.AddWithValue("@Class", student.ClassName);
+            command.Parameters.AddWithValue("@RoomID", student.RoomID ?? (object)DBNull.Value);
+
+            connection.Open();
+            if (command.ExecuteNonQuery() != 1)
+                throw new Exception("Insert failed: no rows affected.");
         }
 
         public void UpdateStudent(Student student)
@@ -97,100 +86,94 @@ namespace Someren.Repositories
                                  roomID = @RoomID 
                              WHERE studentID = @StudentID";
 
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            using (SqlCommand command = new SqlCommand(query, connection))
-            {
-                command.Parameters.AddWithValue("@StudentID", student.StudentID);
-                command.Parameters.AddWithValue("@StudentNumber", student.StudentNumber);
-                command.Parameters.AddWithValue("@FirstName", student.FirstName);
-                command.Parameters.AddWithValue("@LastName", student.LastName);
-                command.Parameters.AddWithValue("@PhoneNumber", student.PhoneNumber);
-                command.Parameters.AddWithValue("@Class", student.ClassName);
-                command.Parameters.AddWithValue("@RoomID", student.RoomID ?? (object)DBNull.Value);
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand(query, connection);
 
-                try
-                {
-                    connection.Open();
-                    int rowsAffected = command.ExecuteNonQuery();
-                    if (rowsAffected == 0)
-                        throw new Exception("Update failed: no rows affected.");
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Error while updating student.", ex);
-                }
-            }
+            command.Parameters.AddWithValue("@StudentID", student.StudentID);
+            command.Parameters.AddWithValue("@StudentNumber", student.StudentNumber);
+            command.Parameters.AddWithValue("@FirstName", student.FirstName);
+            command.Parameters.AddWithValue("@LastName", student.LastName);
+            command.Parameters.AddWithValue("@PhoneNumber", student.PhoneNumber);
+            command.Parameters.AddWithValue("@Class", student.ClassName);
+            command.Parameters.AddWithValue("@RoomID", student.RoomID ?? (object)DBNull.Value);
+
+            connection.Open();
+            if (command.ExecuteNonQuery() == 0)
+                throw new Exception("Update failed: no rows affected.");
+        }
+
+        public void UseVouchers(int studentId, int quantity)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            conn.Open();
+
+            string query = "UPDATE Student SET Vouchers = Vouchers - @quantity WHERE StudentID = @studentId";
+            using var cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@quantity", quantity);
+            cmd.Parameters.AddWithValue("@studentId", studentId);
+
+            cmd.ExecuteNonQuery();
+        }
+
+        public void AddVouchers(int studentId, int amount)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            conn.Open();
+
+            string query = "UPDATE Student SET Vouchers = Vouchers + @amount WHERE StudentID = @studentId";
+            using var cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@amount", amount);
+            cmd.Parameters.AddWithValue("@studentId", studentId);
+
+            cmd.ExecuteNonQuery();
         }
 
         public void DeleteStudent(Student student)
         {
-            string query = @"DELETE FROM Student WHERE studentID = @StudentID";
+            string query = "DELETE FROM Student WHERE studentID = @StudentID";
 
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            using (SqlCommand command = new SqlCommand(query, connection))
-            {
-                command.Parameters.AddWithValue("@StudentID", student.StudentID);
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand(query, connection);
 
-                connection.Open();
-                int rowsAffected = command.ExecuteNonQuery();
+            command.Parameters.AddWithValue("@StudentID", student.StudentID);
 
-                if (rowsAffected == 0)
-                    throw new Exception("Delete failed: no rows affected.");
-            }
+            connection.Open();
+            if (command.ExecuteNonQuery() == 0)
+                throw new Exception("Delete failed: no rows affected.");
         }
 
-        private Student? ExecuteQueryMapStudent(string query, SqlParameter[] parameters)
+        public List<Student> GetStudentsWithRoomAttached(string lastName = "")
         {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            using (SqlCommand command = new SqlCommand(query, connection))
+            var students = new List<Student>();
+
+            string query = @"SELECT s.StudentID, s.StudentNumber, s.FirstName, s.LastName, 
+                                    s.PhoneNumber, s.Class, s.RoomID, s.Vouchers, r.RoomNumber
+                             FROM Student s
+                             LEFT JOIN Room r ON s.RoomID = r.RoomID
+                             WHERE s.RoomID IS NOT NULL AND s.LastName LIKE @LastName
+                             ORDER BY s.LastName";
+
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand(query, connection);
+            command.Parameters.AddWithValue("@LastName", "%" + lastName + "%");
+
+            connection.Open();
+            using var reader = command.ExecuteReader();
+
+            while (reader.Read())
             {
-                command.Parameters.AddRange(parameters);
+                var student = MapStudent(reader);
 
-                try
+                if (!reader.IsDBNull(reader.GetOrdinal("RoomID")))
                 {
-                    connection.Open();
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    student.Room = new Room
                     {
-                        if (reader.Read())
-                        {
-                            return MapStudent(reader);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Error reading single student record.", ex);
+                        RoomID = reader.GetInt32(reader.GetOrdinal("RoomID")),
+                        RoomNumber = reader["RoomNumber"]?.ToString() ?? ""
+                    };
                 }
 
-                return null;
-            }
-        }
-
-        private List<Student> ExecuteQueryMapStudents(string query, SqlParameter[]? parameters = null)
-        {
-            List<Student> students = new List<Student>();
-
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            using (SqlCommand command = new SqlCommand(query, connection))
-            {
-                if (parameters != null)
-                    command.Parameters.AddRange(parameters);
-
-                try
-                {
-                    connection.Open();
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            students.Add(MapStudent(reader));
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Error reading student list.", ex);
-                }
+                students.Add(student);
             }
 
             return students;
@@ -199,53 +182,52 @@ namespace Someren.Repositories
         private Student MapStudent(SqlDataReader reader)
         {
             return new Student(
-                Convert.ToInt32(reader["studentID"]),
-                reader["studentNumber"]?.ToString() ?? "",
-                reader["firstName"]?.ToString() ?? "",
-                reader["lastName"]?.ToString() ?? "",
-                reader["phoneNumber"]?.ToString() ?? "",
-                reader["class"]?.ToString() ?? "",
-                reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : (int?)null
+                studentID: reader.GetInt32(reader.GetOrdinal("studentID")),
+                studentNumber: reader["studentNumber"]?.ToString() ?? "",
+                firstName: reader["firstName"]?.ToString() ?? "",
+                lastName: reader["lastName"]?.ToString() ?? "",
+                phoneNumber: reader["phoneNumber"]?.ToString() ?? "",
+                className: reader["class"]?.ToString() ?? "",
+                roomID: reader.IsDBNull(reader.GetOrdinal("roomID")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("roomID")),
+                vouchers: reader.IsDBNull(reader.GetOrdinal("Vouchers")) ? 0 : reader.GetInt32(reader.GetOrdinal("Vouchers"))
             );
         }
 
-        public List<Student> GetStudentsWithRoomAttached(string lastName = "")
+        private Student? ExecuteQueryMapStudent(string query, SqlParameter[] parameters)
         {
-            List<Student> students = new List<Student>();
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand(query, connection);
+            command.Parameters.AddRange(parameters);
 
-            string query = @"SELECT s.StudentID, s.StudentNumber, s.FirstName, s.LastName, 
-                                    s.PhoneNumber, s.Class, s.RoomID, r.RoomNumber
-                             FROM Student s
-                             LEFT JOIN Room r ON s.RoomID = r.RoomID
-                             WHERE s.RoomID IS NOT NULL AND s.LastName LIKE @LastName
-                             ORDER BY s.LastName";
+            connection.Open();
+            using var reader = command.ExecuteReader();
 
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            using (SqlCommand command = new SqlCommand(query, connection))
+            if (reader.Read())
             {
-                command.Parameters.AddWithValue("@LastName", "%" + lastName + "%");
+                return MapStudent(reader);
+            }
 
-                try
-                {
-                    connection.Open();
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            Student student = MapStudent(reader);
-                            student.Room = new Room
-                            {
-                                RoomID = reader["RoomID"] != DBNull.Value ? Convert.ToInt32(reader["RoomID"]) : 0,
-                                RoomNumber = reader["RoomNumber"]?.ToString() ?? ""
-                            };
-                            students.Add(student);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Error retrieving students with room data.", ex);
-                }
+            return null;
+        }
+
+        private List<Student> ExecuteQueryMapStudents(string query, SqlParameter[]? parameters = null)
+        {
+            var students = new List<Student>();
+
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand(query, connection);
+
+            if (parameters != null)
+            {
+                command.Parameters.AddRange(parameters);
+            }
+
+            connection.Open();
+            using var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                students.Add(MapStudent(reader));
             }
 
             return students;
