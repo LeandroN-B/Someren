@@ -10,6 +10,8 @@
         void UpdateLecturer(Lecturer lecturer);// Edit in CRUD
         void DeleteLecturer(Lecturer lecturer);// Delete in CRUD      
 
+
+
         // Supervisor (Activity-Lecturer) management 
         public List<Lecturer> GetSupervisorsForActivity(int activityId);
 

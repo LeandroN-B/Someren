@@ -1,6 +1,6 @@
 ﻿namespace Someren.Models
 {
-    public class ActivityParticipants
+    public class ActivityParticipantsViewModel
     {
         public int ActivityID { get; set; }
         public Activity Activity { get; set; }
@@ -9,7 +9,7 @@
         public string ConfirmationMessage { get; set; }
 
 
-        public ActivityParticipants()
+        public ActivityParticipantsViewModel()
         {
             Activity = new Activity();
             Participants = new List<Student>();

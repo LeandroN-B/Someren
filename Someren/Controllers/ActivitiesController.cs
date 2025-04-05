@@ -158,43 +158,57 @@ namespace Someren.Controllers
 
 
 
-        // ------------------ Participants ------------------ //
+        // ------------------ Start Of Participants ------------------ //
 
+
+        // Displays the participants and non-participants of an activity.
+        // Also shows confirmation messages after add/remove actions.
         [HttpGet]
         public IActionResult ManageParticipants(int activityId)
         {
-            try
+            string? message = TempData["Message"] as string;
+
+            Activity? activity = _activityRepository.GetActivityByID(activityId);
+            if (activity == null)
             {
-                string? message = TempData["Message"] as string;
-
-                Activity activity = _activityRepository.GetActivityByID(activityId);
-                List<Student> participants = _studentRepository.GetParticipantsForActivity(activityId);
-                List<Student> nonParticipants = _studentRepository.GetNonParticipantsForActivity(activityId);
-
-                ActivityParticipants viewModel = new ActivityParticipants
-                {
-                    ActivityID = activityId,
-                    Activity = activity,
-                    Participants = participants,
-                    NonParticipants = nonParticipants,
-                    ConfirmationMessage = message ?? string.Empty
-                };
-
-                return View(viewModel);
+                TempData["Message"] = "Error: Activity not found.";
+                return RedirectToAction("Index");
             }
-            catch (Exception ex)
+
+            List<Student> participants = _studentRepository.GetParticipantsForActivity(activityId);
+            List<Student> nonParticipants = _studentRepository.GetNonParticipantsForActivity(activityId);
+
+            ActivityParticipantsViewModel viewModel = new ActivityParticipantsViewModel
             {
-                return View("Error", $"Error loading participants: {ex.Message}");
-            }
+                ActivityID = activityId,
+                Activity = activity,
+                Participants = participants,
+                NonParticipants = nonParticipants,
+                ConfirmationMessage = message ?? string.Empty
+            };
+
+            return View(viewModel);
         }
 
+
+        // Adds a student to the activity's participants.
+        // Shows a success message with the student's name.
         [HttpGet]
         public IActionResult AddParticipant(int activityId, int studentId)
         {
             try
             {
+                Student? student = _studentRepository.GetStudentByID(studentId);
                 _studentRepository.AddParticipant(activityId, studentId);
-                TempData["Message"] = "Added: Student was successfully added.";
+
+                if (student != null)
+                {
+                    TempData["Message"] = $"Added: {student.FirstName} {student.LastName} was successfully added.";
+                }
+                else
+                {
+                    TempData["Message"] = "Added: Student was successfully added.";
+                }
             }
             catch (Exception ex)
             {
@@ -204,13 +218,25 @@ namespace Someren.Controllers
             return RedirectToAction("ManageParticipants", new { activityId });
         }
 
+
+        // Removes a student from the activity's participants.
+        // Shows a success message with the student's name.
         [HttpGet]
         public IActionResult RemoveParticipant(int activityId, int studentId)
         {
             try
             {
+                Student? student = _studentRepository.GetStudentByID(studentId);
                 _studentRepository.RemoveParticipant(activityId, studentId);
-                TempData["Message"] = "Removed: Student was successfully removed.";
+
+                if (student != null)
+                {
+                    TempData["Message"] = $"Removed: {student.FirstName} {student.LastName} was successfully removed.";
+                }
+                else
+                {
+                    TempData["Message"] = "Removed: Student was successfully removed.";
+                }
             }
             catch (Exception ex)
             {
@@ -221,5 +247,6 @@ namespace Someren.Controllers
         }
 
 
+        // ------------------ End Of Participants ------------------ //
     }
 }

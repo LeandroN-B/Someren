@@ -236,23 +236,27 @@ namespace Someren.Repositories
 
 
 
-        // ------------------------------------------------------
-        // Activity - Manage Participants
-        // ------------------------------------------------------
+        // ------------------ Start Of Managing Participants ------------------ //
 
+
+        // Gets all students participating in the given activity.
+        // Uses INNER JOIN on the Participates table.
         public List<Student> GetParticipantsForActivity(int activityId)
         {
-            string query = @"SELECT s.studentID, s.studentNumber, s.firstName, s.lastName, s.phoneNumber, s.class, s.roomID
-                     FROM Participates p
-                     INNER JOIN Student s ON s.StudentID = p.StudentID
-                     WHERE p.ActivityID = @ActivityID";
+            string query = @"SELECT s.studentID, s.studentNumber, s.firstName, s.lastName, s.phoneNumber, s.class, s.roomID, s.Vouchers
+                 FROM Participates p
+                 INNER JOIN Student s ON s.StudentID = p.StudentID
+                 WHERE p.ActivityID = @ActivityID";
 
             return ExecuteReaderWithActivityId(query, activityId);
         }
 
+        // Gets all students not participating in the given activity.
+        // Uses LEFT JOIN on the Participates table.
+        // Uses NOT EXISTS to filter out students who are already participating.
         public List<Student> GetNonParticipantsForActivity(int activityId)
         {
-            string query = @"SELECT s.studentID, s.studentNumber, s.firstName, s.lastName, s.phoneNumber, s.class, s.roomID
+            string query = @"SELECT s.studentID, s.studentNumber, s.firstName, s.lastName, s.phoneNumber, s.class, s.roomID, s.vouchers
                      FROM Student s
                      WHERE NOT EXISTS (
                                         SELECT 1 FROM Participates p
@@ -262,18 +266,28 @@ namespace Someren.Repositories
         }
 
 
+        // Adds a student to the activity's participants.
+        // Uses an INSERT statement on the Participates table.
+        // Uses parameters to prevent SQL injection.
         public void AddParticipant(int activityId, int studentId)
         {
             string query = "INSERT INTO Participates (ActivityID, StudentID) VALUES (@ActivityID, @StudentID)";
             ExecuteNonQueryWithActivityAndStudent(query, activityId, studentId);
         }
 
+
+        // Removes a student from the activity's participants.
+        // Uses a DELETE statement on the Participates table.
         public void RemoveParticipant(int activityId, int studentId)
         {
             string query = "DELETE FROM Participates WHERE ActivityID = @ActivityID AND StudentID = @StudentID";
             ExecuteNonQueryWithActivityAndStudent(query, activityId, studentId);
         }
 
+        // Gets all students participating in the given activity.
+        // Uses INNER JOIN on the Participates table.
+        // Uses LEFT JOIN to get the activity details.
+        // Returns an ActivityParticipants object containing the activity and the list of participants
         public ActivityParticipants GetActivityParticipants(int activityId, string message)
         {
             ActivityParticipants result = new ActivityParticipants();
@@ -297,8 +311,11 @@ namespace Someren.Repositories
 
 
 
-        //  ---- Private Helpers ---- //
+        //  ---- Private Methods (Re-usable codes) ---- //
 
+
+        // Executes a SELECT query with ActivityID to fetch matching students.
+        // Maps the results to a list of Student objects.
         private List<Student> ExecuteReaderWithActivityId(string query, int activityId)
         {
             List<Student> students = new List<Student>();
@@ -329,6 +346,9 @@ namespace Someren.Repositories
             return students;
         }
 
+
+        // Executes an INSERT or DELETE with ActivityID and StudentID.
+        // Used for adding/removing participants.
         private void ExecuteNonQueryWithActivityAndStudent(string query, int activityId, int studentId)
         {
             try
@@ -353,5 +373,7 @@ namespace Someren.Repositories
                 throw new Exception("An error occurred while updating participant data.", ex);
             }
         }
+
+        // ------------------ END Of Managing Participants ------------------ //ts
     }
 }

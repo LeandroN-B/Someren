@@ -1,15 +1,20 @@
-﻿@model Someren.Models.ActivityParticipants
+﻿@model Someren.Models.ActivityParticipantsViewModel
 
 @{
     ViewData["Title"] = "Manage Participants";
 }
 
 <div class="container mt-5">
+    <!-- Card container for the participant management view -->
     <div class="card border border-primary border-3 rounded-4">
+
+        <!-- Header with activity title -->
         <div class="card-header bg-primary text-white rounded-top-4">
             <h2 class="mb-0">@Model.Activity.ActivityName - Manage Participants</h2>
         </div>
+
         <div class="card-body">
+            <!-- Show a success or error message if available -->
             @if (!string.IsNullOrEmpty(Model.ConfirmationMessage))
             {
                 string cssClass = Model.ConfirmationMessage.StartsWith("Added:")
@@ -21,12 +26,11 @@
                 </div>
             }
 
-
             <div class="row">
-
-                <!-- Participants that ARE participating -->
+                <!-- Left side: students already participating -->
                 <div class="col-md-6">
                     <h4>Current Participants</h4>
+
                     @if (Model.Participants.Any())
                     {
                         <table class="table table-bordered table-striped">
@@ -42,6 +46,7 @@
                                     <tr>
                                         <td>@student.FirstName @student.LastName (@student.StudentNumber)</td>
                                         <td>
+                                            <!-- Remove button sends studentId and activityId to controller -->
                                             <a asp-action="RemoveParticipant"
                                                asp-route-activityId="@Model.Activity.ActivityID"
                                                asp-route-studentId="@student.StudentID"
@@ -58,10 +63,10 @@
                     }
                 </div>
 
-
-                <!-- Participants that ARE NOT participating -->
+                <!-- Right side: students who can be added -->
                 <div class="col-md-6">
                     <h4>Available Students</h4>
+
                     @if (Model.NonParticipants.Any())
                     {
                         <table class="table table-bordered table-striped">
@@ -77,6 +82,7 @@
                                     <tr>
                                         <td>@student.FirstName @student.LastName (@student.StudentNumber)</td>
                                         <td>
+                                            <!-- Add button sends studentId and activityId to controller -->
                                             <a asp-action="AddParticipant"
                                                asp-route-activityId="@Model.Activity.ActivityID"
                                                asp-route-studentId="@student.StudentID"
@@ -94,6 +100,7 @@
                 </div>
             </div>
 
+            <!-- Back button to return to the activity list -->
             <div class="mt-4">
                 <a asp-action="Index" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Back to Activities
