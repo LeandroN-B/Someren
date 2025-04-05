@@ -228,6 +228,7 @@ namespace Someren.Repositories
 
             return ExecuteQueryMapLecturerList(query, parameters);
         }
+
         public void AddSupervisor(int activityId, int lecturerId)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))

@@ -10,9 +10,12 @@
             <h2 class="mb-0">@Model.Activity.ActivityName - Manage Supervisors</h2>
         </div>
         <div class="card-body">
-            @if (TempData["Message"] != null)
+            @* ✅ Show success message if ViewBag has it *@
+            @if (ViewBag.Message != null)
             {
-                <div class="alert alert-success">@TempData["Message"]</div>
+                <div class="alert alert-success">
+                    @ViewBag.Message
+                </div>
             }
 
             <div class="row">
@@ -52,7 +55,7 @@
 
                 <!-- Non-supervisors section -->
                 <div class="col-md-6">
-                    <h4>Available Lecturers</h4>
+                    <h4>Available Lecturers(Current-Non-supervisors)</h4>
                     @if (Model.NonSupervisors.Any())
                     {
                         <table class="table table-bordered table-striped">
