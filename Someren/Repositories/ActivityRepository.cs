@@ -15,6 +15,7 @@ namespace Someren.Repositories
                 ?? throw new ArgumentNullException(nameof(configuration));
         }
 
+        // Get all activities ordered by date and start time
         public List<Activity> GetAllActivities()
         {
             string query = "SELECT activityID, activityName, activityDate, timeOfDay, startTime, endTime FROM Activity ORDER BY activityDate, startTime";

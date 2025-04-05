@@ -4,7 +4,7 @@ namespace Someren.Models
 {
     public class Activity
     {
-        public int ActivityID { get; set; }
+        public int ActivityID { get; set; }//PK
         
         public string ActivityName { get; set; } = string.Empty;
 
@@ -16,14 +16,14 @@ namespace Someren.Models
 
         public TimeSpan EndTime { get; set; }
 
-        public int DurationMinutes
+        public int DurationMinutes //calculated property
         {
             get
             {
                 return (int)(EndTime - StartTime).TotalMinutes;
             }
         }
-        public Activity() { }
+        public Activity() { } //ctor parameterless
 
         public Activity(int id, string name, DateTime date, string timeOfDay, TimeSpan startTime, TimeSpan endTime)
         {

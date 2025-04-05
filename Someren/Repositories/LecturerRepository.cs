@@ -14,11 +14,13 @@ namespace Someren.Repositories
                 ?? throw new ArgumentNullException(nameof(configuration));
         }
 
+        //query that search Lecturers ordering by lastName
         public List<Lecturer> GetAllLecturers(string lastName = "")
         {
             string query = "SELECT lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID " +
                            "FROM Lecturer WHERE lastName LIKE @LastName ORDER BY lastName";
 
+            //to avoid SQL injection
             SqlParameter[] parameters = new SqlParameter[]
             {
                 new SqlParameter("@LastName", "%" + lastName + "%")
@@ -199,32 +201,27 @@ namespace Someren.Repositories
         }
         public List<Lecturer> GetSupervisorsForActivity(int activityId)
         {
-            string query = @"
-        SELECT l.lecturerID, l.firstName, l.lastName, l.phoneNumber, l.dateOfBirth, l.roomID
-        FROM Lecturer l
-        INNER JOIN Supervises s ON l.lecturerID = s.lecturerID
-        WHERE s.activityID = @ActivityID";
+            string query = @"SELECT l.lecturerID, l.firstName, l.lastName, l.phoneNumber, l.dateOfBirth, l.roomID 
+                           FROM Lecturer l 
+                           INNER JOIN Supervises s ON l.lecturerID = s.lecturerID WHERE s.activityID = @ActivityID";
 
             SqlParameter[] parameters =
             {
-        new SqlParameter("@ActivityID", activityId)
-    };
+                    new SqlParameter("@ActivityID", activityId)
+            };
 
             return ExecuteQueryMapLecturerList(query, parameters);
         }
         public List<Lecturer> GetNonSupervisorsForActivity(int activityId)
         {
-            string query = @"
-        SELECT l.lecturerID, l.firstName, l.lastName, l.phoneNumber, l.dateOfBirth, l.roomID
-        FROM Lecturer l
-        WHERE l.lecturerID NOT IN (
-            SELECT lecturerID FROM Supervises WHERE activityID = @ActivityID
-        )";
+            string query = @"SELECT l.lecturerID, l.firstName, l.lastName, l.phoneNumber, l.dateOfBirth, l.roomID
+                           FROM Lecturer l
+                           WHERE l.lecturerID NOT IN (SELECT lecturerID FROM Supervises WHERE activityID = @ActivityID)";
 
             SqlParameter[] parameters =
             {
-        new SqlParameter("@ActivityID", activityId)
-    };
+                    new SqlParameter("@ActivityID", activityId)
+            };
 
             return ExecuteQueryMapLecturerList(query, parameters);
         }
