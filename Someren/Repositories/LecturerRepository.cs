@@ -124,6 +124,7 @@ namespace Someren.Repositories
                 }
             }
         }
+        //this helps avoid repeating mapping logic 
         private Lecturer? ExecuteQueryMapLecturer(string query, SqlParameter[] sqlParameters)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -160,6 +161,7 @@ namespace Someren.Repositories
             }
 
         }
+        // Executes a SQL query and maps the results to a list. It helps me to maintain the repository methods clean while it's centralizing this logic
         private List<Lecturer> ExecuteQueryMapLecturerList(string query, SqlParameter[] parameters)
         {
             List<Lecturer> lecturers = new List<Lecturer>();
@@ -199,6 +201,11 @@ namespace Someren.Repositories
 
             return lecturers;
         }
+        //------------------Menaging SUPERVISOrR (SPRINT 3) logic--------------------
+
+        // returns a list of assigned lecturers to the activity
+        //following the single responsibility principle
+        // prevented from SQL injection.
         public List<Lecturer> GetSupervisorsForActivity(int activityId)
         {
             string query = @"SELECT l.lecturerID, l.firstName, l.lastName, l.phoneNumber, l.dateOfBirth, l.roomID 
@@ -212,6 +219,10 @@ namespace Someren.Repositories
 
             return ExecuteQueryMapLecturerList(query, parameters);
         }
+
+        //returns a list of non-assigned lecturers to the activity
+        //following the single responsibility principle
+        // prevented from SQL injection.
         public List<Lecturer> GetNonSupervisorsForActivity(int activityId)
         {
             string query = @"SELECT l.lecturerID, l.firstName, l.lastName, l.phoneNumber, l.dateOfBirth, l.roomID
@@ -226,6 +237,9 @@ namespace Someren.Repositories
             return ExecuteQueryMapLecturerList(query, parameters);
         }
 
+        //add a supervisor to a table
+        //following the single responsibility principle
+        // prevented from SQL injection.
         public void AddSupervisor(int activityId, int lecturerId)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -247,6 +261,9 @@ namespace Someren.Repositories
                 }
             }
         }
+        //remove a supervisor to a table
+        //following the single responsibility principle
+        // prevented from SQL injection.
         public void RemoveSupervisor(int activityId, int lecturerId)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
