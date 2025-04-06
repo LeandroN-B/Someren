@@ -288,9 +288,9 @@ namespace Someren.Repositories
         // Uses INNER JOIN on the Participates table.
         // Uses LEFT JOIN to get the activity details.
         // Returns an ActivityParticipants object containing the activity and the list of participants
-        public ActivityParticipants GetActivityParticipants(int activityId, string message)
+        public ActivityParticipantsViewModel GetActivityParticipants(int activityId, string message)
         {
-            ActivityParticipants result = new ActivityParticipants();
+            ActivityParticipantsViewModel result = new ActivityParticipantsViewModel();
 
             result.ActivityID = activityId;
             result.Activity = _activityRepository.GetActivityByID(activityId);

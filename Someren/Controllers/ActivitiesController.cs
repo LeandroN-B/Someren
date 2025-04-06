@@ -142,13 +142,13 @@ namespace Someren.Controllers
             return View("ManageSupervisors", LoadSupervisorViewModel(activityId));
         }
         //to reduce repetition in supervisor logics
-        private ActivitySupervisors LoadSupervisorViewModel(int activityId)
+        private ActivitySupervisorsViewModel LoadSupervisorViewModel(int activityId)
         {
             var activity = _activityRepository.GetActivityByID(activityId);
             var supervisors = _lecturerRepository.GetSupervisorsForActivity(activityId);
             var nonSupervisors = _lecturerRepository.GetNonSupervisorsForActivity(activityId);
 
-            return new ActivitySupervisors
+            return new ActivitySupervisorsViewModel
             {
                 Activity = activity,
                 Supervisors = supervisors,
