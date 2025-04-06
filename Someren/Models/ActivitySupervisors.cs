@@ -6,10 +6,7 @@
         public List<Lecturer> Supervisors { get; set; } = new();
         public List<Lecturer> NonSupervisors { get; set; } = new();
 
-        public ActivitySupervisors()
-        {
-            
-        }
+        public ActivitySupervisors() { }//ctor parameterless
 
     }
 }

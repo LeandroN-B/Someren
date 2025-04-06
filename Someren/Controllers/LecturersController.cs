@@ -23,7 +23,8 @@ namespace Someren.Controllers
            
             string safeLastName = lastName ?? ""; // is guaranteed to lastName never be null,
 
-            List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers(lastName);
+            //calling repository to get the filtered list by last name
+            List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers(lastName); 
 
             return View(lecturers);
         }
@@ -33,7 +34,8 @@ namespace Someren.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            var availableRooms = _roomRepository.GetAvailableSingleRooms(); // only free single rooms
+            // only free single rooms
+            var availableRooms = _roomRepository.GetAvailableSingleRooms(); 
             ViewData["Rooms"] = availableRooms;
             return View();
         }
@@ -42,6 +44,7 @@ namespace Someren.Controllers
         public IActionResult Create(Lecturer lecturer)
         {
             {
+                //checking if the user selected or it's valid
                 if (lecturer.RoomID == null || lecturer.RoomID == 0)
                 {
                     ModelState.AddModelError("", "Please select a room.");
@@ -62,7 +65,7 @@ namespace Someren.Controllers
                         ModelState.AddModelError("", $"Error: {ex.Message}");
                     }
                 }
-
+                // If something goes wrong, shows room options again
                 ViewData["Rooms"] = _roomRepository.GetAvailableSingleRooms();
                 return View(lecturer);
             }
@@ -104,7 +107,7 @@ namespace Someren.Controllers
         {
             if (id == null)
                 return NotFound();
-
+            //get user via repository
             Lecturer? lecturer = _lecturerRepository.GetLecturerByID((int)id);
             if (lecturer == null)
                 return NotFound();
@@ -118,7 +121,7 @@ namespace Someren.Controllers
         public IActionResult Edit(Lecturer lecturer)
         {
             try
-            {
+            {    //get user via repository
                 _lecturerRepository.UpdateLecturer(lecturer);
                 return RedirectToAction("Index");
             }
@@ -126,7 +129,7 @@ namespace Someren.Controllers
             {
                 Console.WriteLine($"Error: {ex.Message}");
 
-                // fill the ist of options again if something goes wrong
+                // fill the list of options again if something goes wrong
                 var availableRooms = _roomRepository.GetAvailableSingleRooms(lecturer.RoomID);
                 ViewBag.AvailableRooms = availableRooms;
 
