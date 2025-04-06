@@ -105,9 +105,31 @@ namespace Someren.Controllers
 
             return View(room);
         }
-             
 
-        [HttpGet]
+        [HttpPost]
+        public IActionResult Edit(Room room)
+        {
+            if (!ModelState.IsValid)
+            {
+                // Reload occupants in case of validation failure
+                _roomRepository.LoadOccupantsForRoom(room);
+                return View(room);
+            }
+
+            try
+            {
+                _roomRepository.UpdateRoom(room);
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Error: " + ex.Message);
+                _roomRepository.LoadOccupantsForRoom(room);
+                return View(room);
+            }
+        }
+
+
         [HttpGet]
         public IActionResult Details(int? id)
         {
