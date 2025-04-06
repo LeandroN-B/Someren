@@ -118,135 +118,164 @@ namespace Someren.Controllers
                 return View(activity);
             }
         }
-        
+
+
+        // ------------------ Start Of supervisors ------------------ //
         [HttpGet]
         public IActionResult ManageSupervisors(int activityId)
         {
             var viewModel = LoadSupervisorViewModel(activityId);
+            if (viewModel == null)
+            {
+                TempData["Message"] = "Error: Activity not found.";
+                return RedirectToAction("Index");
+            }
+            ViewData["Message"] = TempData["Message"];
             return View(viewModel);
         }
-
-        [HttpGet]
+        [HttpGet]       
         public IActionResult AddSupervisor(int activityId, int lecturerId)
         {
             _lecturerRepository.AddSupervisor(activityId, lecturerId);
-            ViewBag.Message = "Lecturer was successfully added as a supervisor.";
-            return View("ManageSupervisors", LoadSupervisorViewModel(activityId));
+
+            Lecturer? lecturer = _lecturerRepository.GetLecturerByID(lecturerId);
+            if (lecturer != null)
+            {
+                TempData["Message"] = $"Lecturer {lecturer.FirstName} {lecturer.LastName} was successfully added as a supervisor.";
+            }
+            else
+            {
+                TempData["Message"] = "Lecturer was successfully added as a supervisor.";
+            }
+
+            return RedirectToAction("ManageSupervisors", new { activityId });
         }
 
         [HttpGet]
         public IActionResult RemoveSupervisor(int activityId, int lecturerId)
         {
             _lecturerRepository.RemoveSupervisor(activityId, lecturerId);
-            ViewBag.Message = "Lecturer was removed from supervisors.";
-            return View("ManageSupervisors", LoadSupervisorViewModel(activityId));
+
+            Lecturer? lecturer = _lecturerRepository.GetLecturerByID(lecturerId);
+            if (lecturer != null)
+            {
+                TempData["Message"] = $"Lecturer {lecturer.FirstName} {lecturer.LastName} was removed from supervisors.";
+            }
+            else
+            {
+                TempData["Message"] = "Lecturer was removed from supervisors.";
+            }
+
+            return RedirectToAction("ManageSupervisors", new { activityId });
         }
         //to reduce repetition in supervisor logics
-        private ActivitySupervisors LoadSupervisorViewModel(int activityId)
+        private ActivitySupervisorsViewModel? LoadSupervisorViewModel(int activityId)
         {
             var activity = _activityRepository.GetActivityByID(activityId);
+            if (activity == null) return null;
+
             var supervisors = _lecturerRepository.GetSupervisorsForActivity(activityId);
             var nonSupervisors = _lecturerRepository.GetNonSupervisorsForActivity(activityId);
 
-            return new ActivitySupervisors
+            return new ActivitySupervisorsViewModel
             {
                 Activity = activity,
                 Supervisors = supervisors,
                 NonSupervisors = nonSupervisors
             };
+
         }
 
+            // ------------------ Start Of Participants ------------------ //
 
 
-        // ------------------ Start Of Participants ------------------ //
-
-
-        // Displays the participants and non-participants of an activity.
-        // Also shows confirmation messages after add/remove actions.
-        [HttpGet]
-        public IActionResult ManageParticipants(int activityId)
-        {
-            string? message = TempData["Message"] as string;
-
-            Activity? activity = _activityRepository.GetActivityByID(activityId);
-            if (activity == null)
+            // Displays the participants and non-participants of an activity.
+            // Also shows confirmation messages after add/remove actions.
+            [HttpGet]
+            public IActionResult ManageParticipants(int activityId)
             {
-                TempData["Message"] = "Error: Activity not found.";
-                return RedirectToAction("Index");
-            }
+                string? message = TempData["Message"] as string;
 
-            List<Student> participants = _studentRepository.GetParticipantsForActivity(activityId);
-            List<Student> nonParticipants = _studentRepository.GetNonParticipantsForActivity(activityId);
-
-            ActivityParticipantsViewModel viewModel = new ActivityParticipantsViewModel
-            {
-                ActivityID = activityId,
-                Activity = activity,
-                Participants = participants,
-                NonParticipants = nonParticipants,
-                ConfirmationMessage = message ?? string.Empty
-            };
-
-            return View(viewModel);
-        }
-
-
-        // Adds a student to the activity's participants.
-        // Shows a success message with the student's name.
-        [HttpGet]
-        public IActionResult AddParticipant(int activityId, int studentId)
-        {
-            try
-            {
-                Student? student = _studentRepository.GetStudentByID(studentId);
-                _studentRepository.AddParticipant(activityId, studentId);
-
-                if (student != null)
+                Activity? activity = _activityRepository.GetActivityByID(activityId);
+                if (activity == null)
                 {
-                    TempData["Message"] = $"Added: {student.FirstName} {student.LastName} was successfully added.";
+                    TempData["Message"] = "Error: Activity not found.";
+                    return RedirectToAction("Index");
                 }
-                else
+
+                List<Student> participants = _studentRepository.GetParticipantsForActivity(activityId);
+                List<Student> nonParticipants = _studentRepository.GetNonParticipantsForActivity(activityId);
+
+                ActivityParticipantsViewModel viewModel = new ActivityParticipantsViewModel
                 {
-                    TempData["Message"] = "Added: Student was successfully added.";
-                }
+                    ActivityID = activityId,
+                    Activity = activity,
+                    Participants = participants,
+                    NonParticipants = nonParticipants,
+                    ConfirmationMessage = message ?? string.Empty
+                };
+
+                return View(viewModel);
             }
-            catch (Exception ex)
+
+
+            // Adds a student to the activity's participants.
+            // Shows a success message with the student's name.
+            [HttpGet]
+            public IActionResult AddParticipant(int activityId, int studentId)
             {
-                TempData["Message"] = $"Removed: Error - {ex.Message}";
-            }
-
-            return RedirectToAction("ManageParticipants", new { activityId });
-        }
-
-
-        // Removes a student from the activity's participants.
-        // Shows a success message with the student's name.
-        [HttpGet]
-        public IActionResult RemoveParticipant(int activityId, int studentId)
-        {
-            try
-            {
-                Student? student = _studentRepository.GetStudentByID(studentId);
-                _studentRepository.RemoveParticipant(activityId, studentId);
-
-                if (student != null)
+                try
                 {
-                    TempData["Message"] = $"Removed: {student.FirstName} {student.LastName} was successfully removed.";
+                    Student? student = _studentRepository.GetStudentByID(studentId);
+                    _studentRepository.AddParticipant(activityId, studentId);
+
+                    if (student != null)
+                    {
+                        TempData["Message"] = $"Added: {student.FirstName} {student.LastName} was successfully added.";
+                    }
+                    else
+                    {
+                        TempData["Message"] = "Added: Student was successfully added.";
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    TempData["Message"] = "Removed: Student was successfully removed.";
+                    TempData["Message"] = $"Removed: Error - {ex.Message}";
                 }
+
+                return RedirectToAction("ManageParticipants", new { activityId });
             }
-            catch (Exception ex)
+
+
+            // Removes a student from the activity's participants.
+            // Shows a success message with the student's name.
+            [HttpGet]
+            public IActionResult RemoveParticipant(int activityId, int studentId)
             {
-                TempData["Message"] = $"Removed: Error - {ex.Message}";
+                try
+                {
+                    Student? student = _studentRepository.GetStudentByID(studentId);
+                    _studentRepository.RemoveParticipant(activityId, studentId);
+
+                    if (student != null)
+                    {
+                        TempData["Message"] = $"Removed: {student.FirstName} {student.LastName} was successfully removed.";
+                    }
+                    else
+                    {
+                        TempData["Message"] = "Removed: Student was successfully removed.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["Message"] = $"Removed: Error - {ex.Message}";
+                }
+
+                return RedirectToAction("ManageParticipants", new { activityId });
             }
 
-            return RedirectToAction("ManageParticipants", new { activityId });
-        }
 
-
-        // ------------------ End Of Participants ------------------ //
+            // ------------------ End Of Participants ------------------ //
+        
     }
 }

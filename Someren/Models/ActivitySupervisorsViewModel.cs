@@ -1,12 +1,12 @@
 ﻿namespace Someren.Models
 {
-    public class ActivitySupervisors
+    public class ActivitySupervisorsViewModel
     {
         public Activity Activity { get; set; }
         public List<Lecturer> Supervisors { get; set; } = new();
         public List<Lecturer> NonSupervisors { get; set; } = new();
 
-        public ActivitySupervisors() { }//ctor parameterless
+        public ActivitySupervisorsViewModel() { }//ctor parameterless
 
     }
 }
