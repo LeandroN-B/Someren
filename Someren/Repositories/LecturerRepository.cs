@@ -14,74 +14,29 @@ namespace Someren.Repositories
                 ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public List<Lecturer> GetAllLecturers()
+        //query that search Lecturers ordering by lastName
+        public List<Lecturer> GetAllLecturers(string lastName = "")
         {
-            List<Lecturer> lecturers = new List<Lecturer>();
+            string query = "SELECT lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID " +
+                           "FROM Lecturer WHERE lastName LIKE @LastName ORDER BY lastName";
 
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            //to avoid SQL injection
+            SqlParameter[] parameters = new SqlParameter[]
             {
-                connection.Open();
-                string query = "SELECT lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID FROM Lecturer";
-                using (SqlCommand cmd = new SqlCommand(query, connection))
-                    try
-                    {
+                new SqlParameter("@LastName", "%" + lastName + "%")
+            };
 
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                int lecturerID = Convert.ToInt32(reader["lecturerID"]);
-                                string firstName = reader["firstName"]?.ToString() ?? string.Empty;
-                                string lastName = reader["lastName"]?.ToString() ?? string.Empty;
-                                string phoneNumber = reader["phoneNumber"]?.ToString() ?? string.Empty;
-                                DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
-                                int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0;
-
-                                var lecturer = new Lecturer(lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID);
-                                lecturers.Add(lecturer);
-                            }
-                        }
-                    }
-                    catch (SqlException ex)
-                    {
-                        throw new Exception("Something went wrong with the database", ex);
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception("Something went wrong reading data", ex);
-                    }
-                //end method refactoring
-            }
-            return lecturers;
+            return ExecuteQueryMapLecturerList(query, parameters);
         }
-
         public Lecturer? GetLecturerByID(int id)
         {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            string query = "SELECT lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID FROM Lecturer WHERE lecturerID = @LecturerID";
+            SqlParameter[] sqlParameters =
             {
-                string query = "SELECT lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID FROM Lecturer WHERE lecturerID = @LecturerID";
-                using (SqlCommand command = new SqlCommand(query, connection))
-                {
+                new SqlParameter("@LecturerID", SqlDbType.Int) { Value = id }
+            };
 
-                    command.Parameters.AddWithValue("@LecturerID", id);
-                    connection.Open();
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            int lecturerID = Convert.ToInt32(reader["lecturerID"]);
-                            string firstName = reader["firstName"].ToString() ?? string.Empty;
-                            string lastName = reader["lastName"].ToString() ?? string.Empty;
-                            string phoneNumber = reader["phoneNumber"].ToString() ?? string.Empty;
-                            DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
-                            int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0;
-
-                            return new Lecturer(lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID);
-                        }
-                    }
-                }
-            }
-            return null;
+            return ExecuteQueryMapLecturer(query, sqlParameters);
         }
 
         public void AddLecturer(Lecturer lecturer)
@@ -90,6 +45,7 @@ namespace Someren.Repositories
             {
                 string query = "INSERT INTO Lecturer (firstName, lastName, phoneNumber, dateOfBirth, roomID) " +
                                "VALUES (@FirstName, @LastName, @PhoneNumber, @DateOfBirth, @RoomID)";
+
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@FirstName", lecturer.FirstName);
@@ -98,12 +54,27 @@ namespace Someren.Repositories
                     command.Parameters.AddWithValue("@DateOfBirth", lecturer.DateOfBirth);
                     command.Parameters.AddWithValue("@RoomID", lecturer.RoomID);
 
-                    connection.Open();
-                    command.ExecuteNonQuery();
+                    try
+                    {
+                        connection.Open();
+                        int affectedRows = command.ExecuteNonQuery();
+
+                        if (affectedRows != 1)
+                        {
+                            throw new Exception("Adding lecturer failed — no row was inserted.");
+                        }
+                    }
+                    catch (SqlException ex)
+                    {
+                        throw; //no specification here to let my controller check the message directly
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("Something went wrong while adding the lecturer.", ex);
+                    }
                 }
             }
         }
-
         public void UpdateLecturer(Lecturer lecturer)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -142,8 +113,10 @@ namespace Someren.Repositories
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@LecturerID", lecturer.LecturerID);
+
                     connection.Open();
                     int affectedRows = command.ExecuteNonQuery();
+
                     if (affectedRows == 0)
                     {
                         throw new Exception("No records deleted!");
@@ -151,92 +124,168 @@ namespace Someren.Repositories
                 }
             }
         }
+        //this helps avoid repeating mapping logic 
+        private Lecturer? ExecuteQueryMapLecturer(string query, SqlParameter[] sqlParameters)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddRange(sqlParameters);
 
-        public List<Lecturer> GetLecturersByLastName(string lastName)
+                    try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                return new Lecturer(
+                                    Convert.ToInt32(reader["lecturerID"]),
+                                    reader["firstName"]?.ToString() ?? string.Empty,
+                                    reader["lastName"]?.ToString() ?? string.Empty,
+                                    reader["phoneNumber"]?.ToString() ?? string.Empty,
+                                    Convert.ToDateTime(reader["dateOfBirth"]),
+                                    reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0
+                                );
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("Error while mapping lecturer", ex);
+                    }
+
+                    return null;
+                }
+            }
+
+        }
+        // Executes a SQL query and maps the results to a list. It helps me to maintain the repository methods clean while it's centralizing this logic
+        private List<Lecturer> ExecuteQueryMapLecturerList(string query, SqlParameter[] parameters)
         {
             List<Lecturer> lecturers = new List<Lecturer>();
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
+            using (SqlCommand command = new SqlCommand(query, connection))
             {
-                connection.Open();
-                string query = "SELECT lecturerID, firstName, lastName, phoneNumber, dateOfBirth, roomID FROM Lecturer WHERE lastName LIKE @LastName";
-                using (SqlCommand cmd = new SqlCommand(query, connection))
+                command.Parameters.AddRange(parameters);
+
+                try
                 {
-                    cmd.Parameters.AddWithValue("@LastName", "%" + lastName + "%");
-                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    connection.Open();
+                    using (SqlDataReader reader = command.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            int lecturerID = Convert.ToInt32(reader["lecturerID"]);
-                            string firstName = reader["firstName"]?.ToString() ?? string.Empty;
-                            string lastNameValue = reader["lastName"]?.ToString() ?? string.Empty;
-                            string phoneNumber = reader["phoneNumber"]?.ToString() ?? string.Empty;
-                            DateTime dateOfBirth = Convert.ToDateTime(reader["dateOfBirth"]);
-                            int roomID = reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0; // // roomID can be NULL in the database if the lecturer is not assigned a room yet.
-
-
-                            lecturers.Add(new Lecturer(lecturerID, firstName, lastNameValue, phoneNumber, dateOfBirth, roomID));
+                            lecturers.Add(new Lecturer(
+                                Convert.ToInt32(reader["lecturerID"]),
+                                reader["firstName"]?.ToString() ?? string.Empty,
+                                reader["lastName"]?.ToString() ?? string.Empty,
+                                reader["phoneNumber"]?.ToString() ?? string.Empty,
+                                Convert.ToDateTime(reader["dateOfBirth"]),
+                                reader["roomID"] != DBNull.Value ? Convert.ToInt32(reader["roomID"]) : 0
+                            ));
                         }
                     }
+                }
+                catch (SqlException ex)
+                {
+                    throw new Exception("Database error while loading lecturers.", ex);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error mapping lecturers from result.", ex);
                 }
             }
 
             return lecturers;
         }
+        //------------------Menaging SUPERVISOrR (SPRINT 3) logic--------------------
 
-        public Lecturer? GetLecturerByRoomID(int roomID)
+        // returns a list of assigned lecturers to the activity
+        //following the single responsibility principle
+        // prevented from SQL injection.
+        public List<Lecturer> GetSupervisorsForActivity(int activityId)
+        {
+            string query = @"SELECT l.lecturerID, l.firstName, l.lastName, l.phoneNumber, l.dateOfBirth, l.roomID 
+                           FROM Lecturer l 
+                           INNER JOIN Supervises s ON l.lecturerID = s.lecturerID WHERE s.activityID = @ActivityID";
+
+            SqlParameter[] parameters =
+            {
+                    new SqlParameter("@ActivityID", activityId)
+            };
+
+            return ExecuteQueryMapLecturerList(query, parameters);
+        }
+
+        //returns a list of non-assigned lecturers to the activity
+        //following the single responsibility principle
+        // prevented from SQL injection.
+        public List<Lecturer> GetNonSupervisorsForActivity(int activityId)
+        {
+            string query = @"SELECT l.lecturerID, l.firstName, l.lastName, l.phoneNumber, l.dateOfBirth, l.roomID
+                           FROM Lecturer l
+                           WHERE l.lecturerID NOT IN (SELECT lecturerID FROM Supervises WHERE activityID = @ActivityID)";
+
+            SqlParameter[] parameters =
+            {
+                    new SqlParameter("@ActivityID", activityId)
+            };
+
+            return ExecuteQueryMapLecturerList(query, parameters);
+        }
+
+        //add a supervisor to a table
+        //following the single responsibility principle
+        // prevented from SQL injection.
+        public void AddSupervisor(int activityId, int lecturerId)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "SELECT LecturerID, FirstName, LastName, PhoneNumber, DateOfBirth, RoomID FROM Lecturer WHERE RoomID = @RoomID";
+                string query = "INSERT INTO Supervises (activityID, lecturerID) VALUES (@ActivityID, @LecturerID)";
+
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
-                    command.Parameters.AddWithValue("@RoomID", roomID);
+                    command.Parameters.AddWithValue("@ActivityID", activityId);
+                    command.Parameters.AddWithValue("@LecturerID", lecturerId);
+
                     connection.Open();
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    int rowsAffected = command.ExecuteNonQuery();
+
+                    if (rowsAffected == 0)
                     {
-                        if (reader.Read())
-                        {
-                            return new Lecturer(
-                                Convert.ToInt32(reader["LecturerID"]),
-                                reader["FirstName"].ToString() ?? string.Empty,
-                                reader["LastName"].ToString() ?? string.Empty,
-                                reader["PhoneNumber"].ToString() ?? string.Empty,
-                                Convert.ToDateTime(reader["DateOfBirth"]),
-                                Convert.ToInt32(reader["RoomID"])
-                            );
-                        }
+                        throw new Exception("Failed to add supervisor.");
                     }
                 }
             }
-            return null;
         }
-        public bool IsRoomFreeForAddLecturer(int roomId)
+        //remove a supervisor to a table
+        //following the single responsibility principle
+        // prevented from SQL injection.
+        public void RemoveSupervisor(int activityId, int lecturerId)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "SELECT COUNT(*) FROM Lecturer WHERE RoomID = @RoomID";
+                string query = "DELETE FROM Supervises WHERE activityID = @ActivityID AND lecturerID = @LecturerID";
+
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
-                    command.Parameters.AddWithValue("@RoomID", roomId);
+                    command.Parameters.AddWithValue("@ActivityID", activityId);
+                    command.Parameters.AddWithValue("@LecturerID", lecturerId);
+
                     connection.Open();
-                    int count = (int)command.ExecuteScalar();
-                    return count == 0;
+                    int rowsAffected = command.ExecuteNonQuery();
+
+                    if (rowsAffected == 0)
+                    {
+                        throw new Exception("Failed to remove supervisor.");
+                    }
                 }
             }
         }
-        public bool IsRoomFreeForEditLecturer(int lecturerId, int newRoomId)
-        {
-            Lecturer? existingLecturer = GetLecturerByID(lecturerId);
-            if (existingLecturer == null)
-                return false;
-
-            // check if it's already assigned to the room
-            Lecturer? otherLecturer = GetLecturerByRoomID(newRoomId);
-
-            // if there is a free room or if is going to be at the same room
-            return otherLecturer == null || otherLecturer.LecturerID == lecturerId;
-        }
 
     }
+
 }
