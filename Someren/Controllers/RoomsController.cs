@@ -22,53 +22,15 @@ namespace Someren.Controllers
         // Displays the list of rooms (with optional capacity filtering)
         public IActionResult Index(int capacity = 0)
         {
-            List<Room> rooms = _roomRepository.GetAllRooms();
-            List<Lecturer> lecturers = _lecturerRepository.GetAllLecturers();
-            List<Student> students = _studentRepository.GetAllStudents();
+            List<Room> rooms = _roomRepository.GetRoomsWithPeople(capacity);
 
-            // Attach lecturers and students to their respective rooms
-            SetRoomPeople(rooms, lecturers, students);
-
-            // If a specific capacity is selected, filter the list
-            if (capacity > 0)
-            {
-                List<Room> filtered = new List<Room>();
-                foreach (Room room in rooms)
-                    if (room.Capacity == capacity) filtered.Add(room);
-                rooms = filtered;
-            }
+            if (capacity != 1 && capacity != 8)
+                capacity = 0;
 
             return View((rooms, capacity));
         }
 
-        // Assigns lecturers and students to rooms for displaying
-        private void SetRoomPeople(List<Room> rooms, List<Lecturer> lecturers, List<Student> students)
-        {
-            for (int i = 0; i < rooms.Count; i++)
-            {
-                Room room = rooms[i];
 
-                // Assign lecturer to room (if matched by RoomID)
-                foreach (Lecturer lecturer in lecturers)
-                {
-                    if (lecturer.RoomID == room.RoomID)
-                    {
-                        room.Lecturer = lecturer;
-                        break;
-                    }
-                }
-
-                // Assign students to the room (if matched by RoomID)
-                room.Students = new List<Student>();
-                foreach (Student student in students)
-                {
-                    if (student.RoomID == room.RoomID)
-                    {
-                        room.Students.Add(student);
-                    }
-                }
-            }
-        }
 
         // Shows the Create Room form
         [HttpGet]
@@ -78,47 +40,33 @@ namespace Someren.Controllers
             return View(new Room());
         }
 
-        // Handles submission of the Create Room form
         [HttpPost]
         public IActionResult Create(Room room)
         {
-            // validation for required fields
-            if (!ModelState.IsValid) return View(room);
-
-            // Prevent adding duplicate room numbers
-            if (RoomNumberExists(room.RoomNumber))
-            {
-                ModelState.AddModelError("RoomNumber", "This room number already exists.");
+            if (!ModelState.IsValid)
                 return View(room);
-            }
 
             try
             {
-                _roomRepository.AddRoom(room);
+                _roomRepository.AddRoomIfNotExists(room);
                 return RedirectToAction("Index");
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError("RoomNumber", ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError("", ex.Message);
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("", "Error: " + ex.Message);
-                return View(room);
-            }
-        }
-
-        // Checks if a room with the same number already exists
-        private bool RoomNumberExists(string roomNumber)
-        {
-            List<Room> allRooms = _roomRepository.GetAllRooms();
-
-            foreach (Room room in allRooms)
-            {
-                if (room.RoomNumber == roomNumber)
-                {
-                    return true;
-                }
             }
 
-            return false;
+            return View(room);
         }
+
 
         // Shows the delete confirmation page
         [HttpGet]
@@ -145,7 +93,6 @@ namespace Someren.Controllers
             }
         }
 
-        // Displays the Edit Room form with current data
         [HttpGet]
         public IActionResult Edit(int? id)
         {
@@ -154,31 +101,13 @@ namespace Someren.Controllers
             Room? room = _roomRepository.GetRoomByID((int)id);
             if (room == null) return NotFound();
 
-            // Load current person data
-            if (room.RoomType == RoomType.Single)
-                room.Lecturer = _lecturerRepository.GetLecturerByRoomID(room.RoomID);
-            else if (room.RoomType == RoomType.Dormitory)
-                room.Students = _studentRepository.GetStudentsByRoomID(room.RoomID);
+            _roomRepository.LoadOccupantsForRoom(room);
 
             return View(room);
         }
+             
 
-        // Saves the updated room data
-        [HttpPost]
-        public IActionResult Edit(Room room)
-        {
-            try
-            {
-                _roomRepository.UpdateRoom(room);
-                return RedirectToAction("Index");
-            }
-            catch (Exception)
-            {
-                return View(room);
-            }
-        }
-
-        // Shows room details (read-only)
+        [HttpGet]
         [HttpGet]
         public IActionResult Details(int? id)
         {
@@ -187,13 +116,10 @@ namespace Someren.Controllers
             Room? room = _roomRepository.GetRoomByID((int)id);
             if (room == null) return NotFound();
 
-            // Attach occupant info for display
-            if (room.RoomType == RoomType.Single)
-                room.Lecturer = _lecturerRepository.GetLecturerByRoomID(room.RoomID);
-            else if (room.RoomType == RoomType.Dormitory)
-                room.Students = _studentRepository.GetStudentsByRoomID(room.RoomID);
+            _roomRepository.LoadOccupantsForRoom(room);
 
             return View(room);
         }
+
     }
 }
