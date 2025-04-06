@@ -54,6 +54,7 @@ namespace Someren.Repositories
             }
         }
 
+        // Method for retrieving available single rooms
         public List<Room> GetAvailableSingleRooms(int? excludeRoomId = null)
         {
             List<Room> availableRooms = new List<Room>();
@@ -292,7 +293,7 @@ namespace Someren.Repositories
 
 
         // --------------------------------------
-        // PRIVATE METHODS
+        // PRIVATE METHODS (Re-usable codes)
         // --------------------------------------
 
         // Adds parameters for inserting/updating a room

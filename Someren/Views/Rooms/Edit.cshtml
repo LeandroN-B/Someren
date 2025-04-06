@@ -4,15 +4,23 @@
     ViewData["Title"] = "Edit Room";
 }
 
+<!-- Page container -->
 <div class="container mt-5">
+    <!-- Card wrapper -->
     <div class="card border border-primary border-3 rounded-4">
+        <!-- Card header with title -->
         <div class="card-header bg-primary text-white rounded-top-4">
             <h1 class="mb-0">Edit Room</h1>
         </div>
+
+        <!-- Card body with form content -->
         <div class="card-body">
+            <!-- Submit form to Edit action -->
             <form asp-action="Edit" method="POST">
+                <!-- Hidden RoomID -->
                 <input type="hidden" asp-for="RoomID" />
 
+                <!-- First row: Room number and Room type -->
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="fw-bold" asp-for="RoomNumber">Room Number:</label>
@@ -27,10 +35,12 @@
                     </div>
                 </div>
 
+                <!-- Second row: Capacity, Floor, Building -->
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <label class="fw-bold" asp-for="Capacity">Capacity:</label>
-                        <input type="number" asp-for="Capacity" class="form-control" required min="1" max="8" />
+                        <!-- Capacity input is read-only and auto-set via JavaScript -->
+                        <input type="number" asp-for="Capacity" id="capacityInput" class="form-control" required min="1" max="8" readonly />
                     </div>
                     <div class="col-md-4">
                         <label class="fw-bold" asp-for="Floor">Floor:</label>
@@ -45,6 +55,7 @@
                     </div>
                 </div>
 
+                <!-- Show who is currently in the room -->
                 <div class="mb-3">
                     <label class="fw-bold">Currently Occupied By:</label>
 
@@ -65,7 +76,7 @@
                     }
                 </div>
 
-
+                <!-- Form buttons -->
                 <div class="d-flex justify-content-between mt-4">
                     <a asp-action="Index" class="btn btn-secondary">
                         <i class="bi bi-arrow-left"></i> Go Back to Room List
@@ -78,3 +89,24 @@
         </div>
     </div>
 </div>
+
+<!-- Scripts section for auto capacity logic -->
+@section Scripts {
+    <script>
+        const roomTypeSelect = document.querySelector('[name="RoomType"]');
+        const capacityInput = document.getElementById('capacityInput');
+
+        function updateCapacity() {
+            const selected = roomTypeSelect.value;
+            capacityInput.value = selected === 'Single' ? 1 : 8;
+        }
+
+        // Listen to room type changes
+        roomTypeSelect.addEventListener('change', updateCapacity);
+
+        // Set correct capacity on page load
+        updateCapacity();
+    </script>
+
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
